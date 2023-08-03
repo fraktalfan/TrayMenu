@@ -3,7 +3,7 @@ An alternative, freely configurable Start menu for Windows
 ## Short Description
 TrayMenu creates a hierarchical menu from the contents of any folder for quick access to applications, files, scripts, etc. The menu, which is based on the classic folder-based Start menu of earlier versions of Windows, can be accessed via an icon in the taskbar. No administrator rights are required for installation, which means that it can be used on computers with limited user rights.
 
-![01-mainmenu](https://github.com/fraktalfan/TrayMenu/assets/93649344/642bdbd0-56f4-4a9d-8458-1ec7abd5548c)
+![01-mainmenu](https://github.com/fraktalfan/TrayMenu/assets/93649344/58c88fc5-afbb-4e6a-84de-b8494945c8a7)
 
 ## Background
 In my opinion, the folder-based Start menu introduced with Windows 95 was ideal for clearly categorizing all installed applications and frequently used files in one central location and for quick access to them. After Microsoft unfortunately abolished this extremely practical form of the Start menu with Windows 8 and replaced it with a confusing "Start page", thank God there were tools such as "Open-Shell" that brought the classic Start menu back again. Unfortunately, its installation requires administrator rights, so it cannot be used on company computers with limited user rights, for example. There you could at least help yourself with a self-created toolbar, which behaved similarly to a Start menu, except that it could not be opened via the keyboard (Windows key or Ctrl+Esc, but only by clicking in the taskbar. Unfortunately, with the introduction of Windows 11, Microsoft also abolished this last option of creating your own selection menus. With TrayMenu, an alternative is available that doesn't quite come close to the old Start menu, but still fulfills two important criteria: 1.) Any folder contents can be displayed in the form of a hierarchically structured menu, and 2.) it does not require admin rights on the computer.
@@ -29,7 +29,9 @@ To permanently display the TrayMenu icon in the notification area of the taskbar
 ![00e-taskbar-overflow](https://github.com/fraktalfan/TrayMenu/assets/93649344/c13eb04c-c0e6-46cb-bf87-b060a7709063)
 
 ## Usage
-A normal click on the TrayMenu icon or pressing the key combination Ctrl+F1 (changeable) opens the Start menu for selecting the applications and files stored there. Initially, only a few entries are visible there, e.g. the "Programs" submenu, if it has not yet been supplemented by own entries.
+A normal click on the TrayMenu icon or pressing the key combination Ctrl+F1 (changeable) opens the Start menu for selecting the applications and files stored there. Initially, only a few entries are visible there, e.g. the "Programs" submenu, if it has not yet been supplemented by own entries. A click with the left mouse button on a file opens it; a right click shows the explorer context menu:
+
+![13-shell-context-menu](https://github.com/fraktalfan/TrayMenu/assets/93649344/b3f7974f-b476-4504-a52a-b7daf5f8a38f)
 
 A right-click on the TrayMenu icon opens the context menu through which various settings can be made:
 
@@ -128,6 +130,11 @@ In the example above, a shortcut to the folder "C:\ProgramData\Microsoft\Windows
 To include the Windows system folders "Desktop" and "Start menu" there is the setting "Include" in the "Settings" menu since version 1.1.
 
 ## Updates
+
+### Version 1.2 (03.08.2023)
+
+* New: Show separators between folders and files if option "Folders first" is enabled.
+* New: Shell (Explorer) context menu for non-folder items.
 
 ### Version 1.1 (02.08.2023)
 

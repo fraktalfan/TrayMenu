@@ -158,6 +158,7 @@ BEGIN_MESSAGE_MAP(CTrayMenuDlg, CDialogEx)
 	ON_WM_MEASUREITEM()
 	ON_WM_INITMENUPOPUP()
 	ON_WM_HOTKEY()
+	ON_WM_MENURBUTTONUP()
 END_MESSAGE_MAP()
 
 
@@ -1389,6 +1390,87 @@ void CTrayMenuDlg::OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpmis)
 			}
 		}
 	}
+}
+
+void CTrayMenuDlg::OnMenuRButtonUp(UINT uMenuPos, CMenu* pMenu)
+{
+	TRACE("uMenuPos = %d\n", uMenuPos);
+	UINT uMenuId = pMenu->GetMenuItemID(uMenuPos);
+	if (uMenuId > 0)
+	{
+		if (uMenuId >= MENU_ID_START && uMenuId - MENU_ID_START < m_arrEntries.size())
+		{
+			CEntry* pEntry = m_arrEntries[uMenuId - MENU_ID_START];
+			CPoint ptMenuPos;
+			GetCursorPos(&ptMenuPos);
+			OpenShellContextMenu(pEntry->strPath, ptMenuPos.x, ptMenuPos.y, m_hWnd);
+		}
+	}
+}
+
+class CItemIdListReleaser
+{
+public:
+	explicit CItemIdListReleaser(ITEMIDLIST* idList) : _idList(idList) {}
+	~CItemIdListReleaser() { if (_idList) CoTaskMemFree(_idList); }
+private:
+	ITEMIDLIST* _idList;
+};
+
+class CComInterfaceReleaser
+{
+public:
+	explicit CComInterfaceReleaser(IUnknown* i) : _i(i) {}
+	~CComInterfaceReleaser() { if (_i) _i->Release(); }
+private:
+	IUnknown* _i;
+};
+
+bool CTrayMenuDlg::OpenShellContextMenu(const CString& strPath, int xPos, int yPos, HWND hwndParent)
+{
+	ITEMIDLIST* idList = 0;
+	HRESULT result = SHParseDisplayName(strPath, 0, &idList, 0, 0);
+	if (!SUCCEEDED(result) || !idList)
+		return false;
+	CItemIdListReleaser idListReleaser(idList);
+
+	IShellFolder* iFolder = 0;
+
+	LPCITEMIDLIST idChild = 0;
+	result = SHBindToParent(idList, IID_IShellFolder, (void**)&iFolder, &idChild);
+	if (!SUCCEEDED(result) || !iFolder)
+		return false;
+	CComInterfaceReleaser iFolderReleaser(iFolder);
+
+	IContextMenu* iMenu = 0;
+	result = iFolder->GetUIObjectOf(hwndParent, 1, (const ITEMIDLIST**)&idChild, IID_IContextMenu, 0, (void**)&iMenu);
+	if (!SUCCEEDED(result) || !iFolder)
+		return false;
+	CComInterfaceReleaser menuReleaser(iMenu);
+
+	HMENU hMenu = CreatePopupMenu();
+	if (!hMenu)
+		return false;
+	if (SUCCEEDED(iMenu->QueryContextMenu(hMenu, 0, 1, 0x7FFF, CMF_NORMAL)))
+	{
+		int iCmd = TrackPopupMenuEx(hMenu, TPM_RETURNCMD | TPM_RECURSE, xPos, yPos, hwndParent, NULL);
+		if (iCmd > 0)
+		{
+			SendMessage(WM_CANCELMODE); // close TrayMenu menu
+
+			CMINVOKECOMMANDINFOEX info = { 0 };
+			info.cbSize = sizeof(info);
+			info.fMask = CMIC_MASK_UNICODE;
+			info.hwnd = hwndParent;
+			info.lpVerb = (LPCSTR)((INT_PTR)iCmd - 1);
+			info.lpVerbW = (LPCWSTR)((INT_PTR)iCmd - 1);
+			info.nShow = SW_SHOWNORMAL;
+			iMenu->InvokeCommand((LPCMINVOKECOMMANDINFO)&info);
+		}
+	}
+	DestroyMenu(hMenu);
+
+	return true;
 }
 
 HICON CTrayMenuDlg::GetIconForItem(UINT itemID)

@@ -341,6 +341,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 private:
+	HRESULT m_hrCoInitialize;
 	DlgMode m_DlgMode;
 	BOOL m_bIsVisible;
 	BOOL m_bIsReady;

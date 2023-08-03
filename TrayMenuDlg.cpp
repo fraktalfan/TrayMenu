@@ -24,6 +24,7 @@ CTrayMenuDlg::CTrayMenuDlg(CString strFolder, CWnd* pParent /*=nullptr*/)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDI_ICON_MIXED);
 
+	m_hrCoInitialize = CoInitialize(NULL);
 	m_DlgMode = DlgMode::INIT;
 	m_bIsVisible = FALSE;
 	m_bIsReady = FALSE;
@@ -139,6 +140,9 @@ void CTrayMenuDlg::DeleteData()
 		::DeleteObject(m_hbrMenuBackground);
 		m_hbrMenuBackground = 0;
 	}
+
+	if (SUCCEEDED(m_hrCoInitialize))
+		CoUninitialize();
 }
 
 void CTrayMenuDlg::DoDataExchange(CDataExchange* pDX)
@@ -175,8 +179,11 @@ BOOL CTrayMenuDlg::OnInitDialog()
 
 	// TODO: Hier zusätzliche Initialisierung einfügen
 	
-	CenterWindow();
 	ModifyStyleEx(WS_EX_APPWINDOW, 0);
+
+	if (!SUCCEEDED(m_hrCoInitialize))
+		AfxMessageBox(_T("CoInitialize failed."));
+
 	LoadSettings();
 	CreateTrayIcon();
 	ReloadMenu();
@@ -894,39 +901,34 @@ BOOL CTrayMenuDlg::ReloadMenu()
 
 BOOL CTrayMenuDlg::ReadFolder()
 {
-	if (SUCCEEDED(CoInitialize(NULL)))
+	m_nCurrentMenuID = MENU_ID_START;
+
+	m_entryRoot.bIsRootElement = TRUE;
+	m_entryRoot.uMenuID = m_nCurrentMenuID;
+	m_entryRoot.eEntryType = EntryType::DIR;
+	m_entryRoot.strPath = m_strFolder;
+	m_entryRoot.strName = GetFolderName();
+	m_entryRoot.strDisplayName = GetLocalizedName(m_strFolder, m_entryRoot.strName);
+
+	m_nCurrentMenuID++;
+	m_arrEntries.push_back(&m_entryRoot);
+
+	BOOL bResult = AddPath(&m_entryRoot, m_strFolder);
+
+	if (m_bIncludeDesktop)
 	{
-		m_nCurrentMenuID = MENU_ID_START;
-
-		m_entryRoot.bIsRootElement = TRUE;
-		m_entryRoot.uMenuID = m_nCurrentMenuID;
-		m_entryRoot.eEntryType = EntryType::DIR;
-		m_entryRoot.strPath = m_strFolder;
-		m_entryRoot.strName = GetFolderName();
-		m_entryRoot.strDisplayName = GetLocalizedName(m_strFolder, m_entryRoot.strName);
-
-		m_nCurrentMenuID++;
-		m_arrEntries.push_back(&m_entryRoot);
-
-		BOOL bResult = AddPath(&m_entryRoot, m_strFolder);
-
-		if (m_bIncludeDesktop)
-		{
-			if (EnabledSystemFolder(CSIDL_DESKTOP)) bResult &= AddSystemFolder(CSIDL_DESKTOP, TRUE);
-			if (EnabledSystemFolder(CSIDL_COMMON_DESKTOPDIRECTORY)) bResult &= AddSystemFolder(CSIDL_COMMON_DESKTOPDIRECTORY, TRUE, CSIDL_DESKTOP);
-		}
-			
-		if (m_bIncludeStartmenu)
-		{
-			if (EnabledSystemFolder(CSIDL_STARTMENU)) bResult &= AddSystemFolder(CSIDL_STARTMENU);
-			if (EnabledSystemFolder(CSIDL_COMMON_STARTMENU)) bResult &= AddSystemFolder(CSIDL_COMMON_STARTMENU);
-		}
-
-		CoUninitialize();
-		m_entryRoot.SortChildren();
-		return bResult;
+		if (EnabledSystemFolder(CSIDL_DESKTOP)) bResult &= AddSystemFolder(CSIDL_DESKTOP, TRUE);
+		if (EnabledSystemFolder(CSIDL_COMMON_DESKTOPDIRECTORY)) bResult &= AddSystemFolder(CSIDL_COMMON_DESKTOPDIRECTORY, TRUE, CSIDL_DESKTOP);
 	}
-	return FALSE;
+			
+	if (m_bIncludeStartmenu)
+	{
+		if (EnabledSystemFolder(CSIDL_STARTMENU)) bResult &= AddSystemFolder(CSIDL_STARTMENU);
+		if (EnabledSystemFolder(CSIDL_COMMON_STARTMENU)) bResult &= AddSystemFolder(CSIDL_COMMON_STARTMENU);
+	}
+
+	m_entryRoot.SortChildren();
+	return bResult;
 }
 
 BOOL CTrayMenuDlg::AddPath(CEntry* pEntry, CString strFolder, CString strPattern, CString strMergeFolder)
@@ -1862,9 +1864,6 @@ BOOL CTrayMenuDlg::AddToAutostart(CString strFolder)
 
 BOOL CTrayMenuDlg::CreateShortcut()
 {
-	if (!SUCCEEDED(CoInitialize(NULL)))
-		return FALSE;
-
 	// Pfad der .exe-Datei ermitteln
 	CString strAppPath;
 	GetModuleFileName(GetModuleHandle(NULL), strAppPath.GetBuffer(MAX_PATH), MAX_PATH);
@@ -1911,7 +1910,6 @@ BOOL CTrayMenuDlg::CreateShortcut()
 		}
 		psl->Release();
 	}
-	CoUninitialize();
 	return SUCCEEDED(hres);
 }
 
@@ -1948,6 +1946,7 @@ void CTrayMenuDlg::ShowDialogHotkey()
 	m_stcDlgMessage.SetWindowText(_T("Please press any combination of keys:"));
 	m_hotKeyCtrl.SetHotKey((WORD&)m_uHotkeyKeyCode, (WORD&)m_uHotkeyModifiers);
 	m_hotKeyCtrl.SetFocus();
+	CenterWindow();
 	ShowWindow(SW_RESTORE);
 }
 

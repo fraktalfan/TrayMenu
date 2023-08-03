@@ -1109,15 +1109,26 @@ BOOL CTrayMenuDlg::AddItem(CEntry* pEntry, CMenu* pmnuParent)
 		vector<CEntry*>::iterator it;
 		if (m_bFoldersFirst)
 		{
+			BOOL bShowSeparator = FALSE;
 			for (it = pEntry->children.begin(); it != pEntry->children.end(); it++)
 			{
 				if ((*it)->eEntryType == EntryType::DIR && (*it)->children.size() > 0)
+				{
+					bShowSeparator = TRUE;
 					AddItem(*it, pmnuSubMenu);
+				}
 			}
 			for (it = pEntry->children.begin(); it != pEntry->children.end(); it++)
 			{
 				if ((*it)->eEntryType != EntryType::DIR)
+				{
+					if (bShowSeparator)
+					{
+						AppendMenuItem(pmnuSubMenu);
+						bShowSeparator = FALSE;
+					}
 					AddItem(*it, pmnuSubMenu);
+				}
 			}
 		}
 		else

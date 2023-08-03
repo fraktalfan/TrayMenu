@@ -16,7 +16,7 @@ using namespace std;
 // CTrayMenuDlg-Dialogfeld
 class CTrayMenuDlg : public CDialogEx
 {
-	enum class EntryType { INIT, DIR, FILE, CPL };
+	enum class EntryType { INIT, DIR, FILE };
 
 	class CEntry
 	{

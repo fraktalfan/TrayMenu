@@ -13,213 +13,231 @@ using namespace std;
 // Dieser Wert kann durch Anpassen des folgenden Registry-Wertes auf max. 65536 gesetzt werden:
 // HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows\GDIProcessHandleQuota 
 
+class CItemIdListReleaser
+{
+public:
+	explicit CItemIdListReleaser(ITEMIDLIST* idList) : _idList(idList) {}
+	~CItemIdListReleaser() { if (_idList) CoTaskMemFree(_idList); }
+private:
+	ITEMIDLIST* _idList;
+};
+
+class CComInterfaceReleaser
+{
+public:
+	explicit CComInterfaceReleaser(IUnknown* i) : _i(i) {}
+	~CComInterfaceReleaser() { if (_i) _i->Release(); }
+private:
+	IUnknown* _i;
+};
+
+enum class EntryType { INIT, DIR, FILE };
+
+class CEntry
+{
+public:
+	CEntry()
+	{
+		eEntryType = EntryType::INIT;
+		uMenuID = 0;
+		hIcon = 0;
+		iLinkIconIndex = -1;
+		bMenuStyleOwnerDraw = FALSE;
+		bIsRootElement = FALSE;
+	}
+
+	~CEntry()
+	{
+		Delete();
+	}
+
+	void Delete()
+	{
+		if (hIcon != 0)
+			DestroyIcon(hIcon);
+
+		for (vector<CEntry*>::iterator it = children.begin(); it != children.end(); it++)
+			delete* it;
+
+		children.clear();
+
+		if (bIsRootElement && menu.m_hMenu)
+			menu.DestroyMenu();
+	}
+
+	CEntry* FindChild(const CString& strDisplayName, EntryType eEntryType)
+	{
+		for (vector<CEntry*>::iterator it = children.begin(); it != children.end(); it++)
+		{
+			if ((*it)->strDisplayName.CompareNoCase(strDisplayName) == 0 && (*it)->eEntryType == eEntryType)
+				return *it;
+		}
+		return NULL;
+	}
+
+	CString GetMenuString()
+	{
+		CString strMenuString = strDisplayName;
+		if (!bMenuStyleOwnerDraw)
+			strMenuString.Replace(_T("&"), _T("&&"));
+		return strMenuString;
+	}
+
+	void SortChildren()
+	{
+		// Zuerst die eigenen Kinder sortieren
+		if (children.size() > 1) // Sortieren macht natürlich erst ab 2 Kind-Elementen Sinn
+		{
+			// children.sort(CompareChildren); // gilt für list
+			sort(children.begin(), children.end(), CompareChildren); // gilt für vector
+		}
+
+		// Dann die Enkel, Urenkel usw. sortieren (rekursiver Aufruf)
+		for (vector<CEntry*>::iterator it = children.begin(); it != children.end(); it++)
+		{
+			(*it)->SortChildren();
+		}
+	}
+
+	static bool CompareChildren(CEntry* a, CEntry* b)
+	{
+		return *a < *b;
+	}
+
+	bool operator < (const CEntry& a) const
+	{
+		return CSTR_LESS_THAN == CompareString(LOCALE_USER_DEFAULT, 0, strDisplayName, -1, a.strDisplayName, -1);
+	}
+
+	vector<CEntry*> children;
+	EntryType eEntryType;
+	CString strPath;
+	CString strName;
+	CString strDisplayName;
+
+	// Infos aus der .lnk-Datei:
+	CString strLinkPath;
+	CString strLinkArgs;
+	CString strLinkDesc;
+	CString strLinkDir;
+	CString strLinkIconPath;
+	int iLinkIconIndex;
+
+	CMenu menu;		// Das zu diesem Element gehörige Submenü (Popup)
+	UINT uMenuID;	// Fortlaufende Nummer als Menu-ID (ab MENU_ID_START).
+	HICON hIcon;	// Handle des Icons, das im Menü angezeigt wird.
+	BOOL bMenuStyleOwnerDraw;
+	BOOL bIsRootElement;
+};
+
+enum class ItemType { INIT, SEPARATOR, STRING, POPUP };
+
+class CItemData
+{
+public:
+	CItemData(CMenu* a_pMenu, UINT a_uMenuID, LPCWSTR a_szCaption, ItemType a_eItemType)
+	{
+		pMenu = a_pMenu;
+		uMenuID = a_uMenuID;
+		strCaption = a_szCaption;
+		eItemType = a_eItemType;
+	}
+
+	static CItemData* Find(vector<CItemData*>& arrItemData, UINT a_uMenuID)
+	{
+		for (vector<CItemData*>::iterator it = arrItemData.begin(); it != arrItemData.end(); it++)
+		{
+			if ((*it)->uMenuID == a_uMenuID)
+				return *it;
+		}
+		return NULL;
+	}
+
+	static void Delete(vector<CItemData*>& arrItemData)
+	{
+		while (arrItemData.size() > 0)
+		{
+			delete arrItemData.back();
+			arrItemData.pop_back();
+		}
+
+		arrItemData.shrink_to_fit();
+	}
+
+	ItemType eItemType;
+	CMenu* pMenu;
+	UINT uMenuID;
+	HICON hIcon;
+	CString strCaption;
+};
+
+enum class MenuStyle { DEFAULT, LIGHT, DARK, CUSTOM };
+
+class CMenuStyle
+{
+public:
+	CMenuStyle()
+	{
+		menuStyle = MenuStyle::DEFAULT;
+		colMenuText = 0;
+		colMenuBackground = 0;
+		colMenuSeparator = 0;
+		colMenuSelectionOuter = 0;
+		colMenuSelectionInner = 0;
+		colMenuSelectionBackg = 0;
+		bOwnerDraw = FALSE;
+	}
+
+	void SetMenuStyle
+	(
+		MenuStyle a_menuStyle,
+		COLORREF a_colMenuText,
+		COLORREF a_colMenuBackground,
+		COLORREF a_colMenuSeparator,
+		COLORREF a_colMenuSelectionOuter,
+		COLORREF a_colMenuSelectionInner,
+		COLORREF a_colMenuSelectionBackg
+	)
+	{
+		menuStyle = a_menuStyle;
+		colMenuText = a_colMenuText;
+		colMenuBackground = a_colMenuBackground;
+		colMenuSeparator = a_colMenuSeparator;
+		colMenuSelectionOuter = a_colMenuSelectionOuter;
+		colMenuSelectionInner = a_colMenuSelectionInner;
+		colMenuSelectionBackg = a_colMenuSelectionBackg;
+
+		bOwnerDraw = (menuStyle == MenuStyle::DEFAULT ? FALSE : TRUE);
+	};
+
+	void SetMenuStyle(CMenuStyle& a_menuStyle)
+	{
+		menuStyle = a_menuStyle.menuStyle;
+		colMenuText = a_menuStyle.colMenuText;
+		colMenuBackground = a_menuStyle.colMenuBackground;
+		colMenuSeparator = a_menuStyle.colMenuSeparator;
+		colMenuSelectionOuter = a_menuStyle.colMenuSelectionOuter;
+		colMenuSelectionInner = a_menuStyle.colMenuSelectionInner;
+		colMenuSelectionBackg = a_menuStyle.colMenuSelectionBackg;
+
+		bOwnerDraw = (menuStyle == MenuStyle::DEFAULT ? FALSE : TRUE);
+	}
+
+	MenuStyle menuStyle;
+	BOOL bOwnerDraw;
+	COLORREF colMenuText;
+	COLORREF colMenuBackground;
+	COLORREF colMenuSeparator;
+	COLORREF colMenuSelectionOuter;
+	COLORREF colMenuSelectionInner;
+	COLORREF colMenuSelectionBackg;
+};
+
+enum class DlgMode { INIT, HOTKEY };
+
 // CTrayMenuDlg-Dialogfeld
 class CTrayMenuDlg : public CDialogEx
 {
-	enum class EntryType { INIT, DIR, FILE };
-
-	class CEntry
-	{
-	public:
-		CEntry()
-		{
-			eEntryType = EntryType::INIT;
-			uMenuID = 0;
-			hIcon = 0;
-			iLinkIconIndex = -1;
-			bMenuStyleOwnerDraw = FALSE;
-			bIsRootElement = FALSE;
-		}
-
-		~CEntry()
-		{
-			Delete();
-		}
-
-		void Delete()
-		{
-			if (hIcon != 0)
-				DestroyIcon(hIcon);
-
-			for (vector<CEntry*>::iterator it = children.begin(); it != children.end(); it++)
-				delete *it;
-
-			children.clear();
-
-			if (bIsRootElement && menu.m_hMenu)
-				menu.DestroyMenu();
-		}
-
-		CEntry* FindChild(const CString &strDisplayName, EntryType eEntryType)
-		{
-			for (vector<CEntry*>::iterator it = children.begin(); it != children.end(); it++)
-			{
-				if ((*it)->strDisplayName.CompareNoCase(strDisplayName) == 0 && (*it)->eEntryType == eEntryType)
-					return *it;
-			}
-			return NULL;
-		}
-
-		CString GetMenuString()
-		{
-			CString strMenuString = strDisplayName;
-			if (!bMenuStyleOwnerDraw)
-				strMenuString.Replace(_T("&"), _T("&&"));
-			return strMenuString;
-		}
-
-		void SortChildren()
-		{
-			// Zuerst die eigenen Kinder sortieren
-			if (children.size() > 1) // Sortieren macht natürlich erst ab 2 Kind-Elementen Sinn
-			{
-				// children.sort(CompareChildren); // gilt für list
-				sort(children.begin(), children.end(), CompareChildren); // gilt für vector
-			}
-
-			// Dann die Enkel, Urenkel usw. sortieren (rekursiver Aufruf)
-			for (vector<CEntry*>::iterator it = children.begin(); it != children.end(); it++)
-			{
-				(*it)->SortChildren();
-			}
-		}
-
-		static bool CompareChildren(CEntry* a, CEntry* b)
-		{
-			return *a < *b;
-		}
-
-		bool operator < (const CEntry& a) const
-		{
-			return CSTR_LESS_THAN == CompareString(LOCALE_USER_DEFAULT, 0, strDisplayName, -1, a.strDisplayName, -1);
-		}
-
-		vector<CEntry*> children;
-		EntryType eEntryType;
-		CString strPath;
-		CString strName;
-		CString strDisplayName;
-
-		// Infos aus der .lnk-Datei:
-		CString strLinkPath;
-		CString strLinkArgs;
-		CString strLinkDesc;
-		CString strLinkDir;
-		CString strLinkIconPath;
-		int iLinkIconIndex;
-
-		CMenu menu;		// Das zu diesem Element gehörige Submenü (Popup)
-		UINT uMenuID;	// Fortlaufende Nummer als Menu-ID (ab MENU_ID_START).
-		HICON hIcon;	// Handle des Icons, das im Menü angezeigt wird.
-		BOOL bMenuStyleOwnerDraw;
-		BOOL bIsRootElement;
-	};
-
-	enum class ItemType { INIT, SEPARATOR, STRING, POPUP };
-
-	class CItemData
-	{
-	public:
-		CItemData(CMenu* a_pMenu, UINT a_uMenuID, LPCWSTR a_szCaption, ItemType a_eItemType)
-		{
-			pMenu = a_pMenu;
-			uMenuID = a_uMenuID;
-			strCaption = a_szCaption;
-			eItemType = a_eItemType;
-		}
-
-		static CItemData* Find(vector<CItemData*>& arrItemData, UINT a_uMenuID)
-		{
-			for (vector<CItemData*>::iterator it = arrItemData.begin(); it != arrItemData.end(); it++)
-			{
-				if ((*it)->uMenuID == a_uMenuID)
-					return *it;
-			}
-			return NULL;
-		}
-
-		static void Delete(vector<CItemData*>& arrItemData)
-		{
-			while (arrItemData.size() > 0)
-			{
-				delete arrItemData.back();
-				arrItemData.pop_back();
-			}
-
-			arrItemData.shrink_to_fit();
-		}
-
-		ItemType eItemType;
-		CMenu* pMenu;
-		UINT uMenuID;
-		HICON hIcon;
-		CString strCaption;
-	};
-
-	enum class MenuStyle { DEFAULT, LIGHT, DARK, CUSTOM };
-
-	class CMenuStyle
-	{
-	public:
-		CMenuStyle()
-		{
-			menuStyle = MenuStyle::DEFAULT;
-			colMenuText = 0;
-			colMenuBackground = 0;
-			colMenuSeparator = 0;
-			colMenuSelectionOuter = 0;
-			colMenuSelectionInner = 0;
-			colMenuSelectionBackg = 0;
-			bOwnerDraw = FALSE;
-		}
-
-		void SetMenuStyle
-		(
-			MenuStyle a_menuStyle,
-			COLORREF a_colMenuText,
-			COLORREF a_colMenuBackground,
-			COLORREF a_colMenuSeparator,
-			COLORREF a_colMenuSelectionOuter,
-			COLORREF a_colMenuSelectionInner,
-			COLORREF a_colMenuSelectionBackg
-		)
-		{
-			menuStyle = a_menuStyle;
-			colMenuText = a_colMenuText;
-			colMenuBackground = a_colMenuBackground;
-			colMenuSeparator = a_colMenuSeparator;
-			colMenuSelectionOuter = a_colMenuSelectionOuter;
-			colMenuSelectionInner = a_colMenuSelectionInner;
-			colMenuSelectionBackg = a_colMenuSelectionBackg;
-
-			bOwnerDraw = (menuStyle == MenuStyle::DEFAULT ? FALSE : TRUE);
-		};
-
-		void SetMenuStyle(CMenuStyle& a_menuStyle)
-		{
-			menuStyle = a_menuStyle.menuStyle;
-			colMenuText = a_menuStyle.colMenuText;
-			colMenuBackground = a_menuStyle.colMenuBackground;
-			colMenuSeparator = a_menuStyle.colMenuSeparator;
-			colMenuSelectionOuter = a_menuStyle.colMenuSelectionOuter;
-			colMenuSelectionInner = a_menuStyle.colMenuSelectionInner;
-			colMenuSelectionBackg = a_menuStyle.colMenuSelectionBackg;
-
-			bOwnerDraw = (menuStyle == MenuStyle::DEFAULT ? FALSE : TRUE);
-		}
-
-		MenuStyle menuStyle;
-		BOOL bOwnerDraw;
-		COLORREF colMenuText;
-		COLORREF colMenuBackground;
-		COLORREF colMenuSeparator;
-		COLORREF colMenuSelectionOuter;
-		COLORREF colMenuSelectionInner;
-		COLORREF colMenuSelectionBackg;
-	};
-
-	enum class DlgMode { INIT, HOTKEY };
-
 	// Konstruktion
 public:
 	CTrayMenuDlg(CString strFolder, CWnd* pParent = nullptr);	// Standardkonstruktor
@@ -281,6 +299,7 @@ protected:
 	HICON m_hIconIncludeFolder;
 	HICON m_hIconHotkey;
 	HICON m_hIconLeftmost;
+	HICON m_hIconExportSettings;
 
 	// Generierte Funktionen für die Meldungstabellen
 	virtual BOOL OnInitDialog();
@@ -321,6 +340,8 @@ protected:
 	CString GetHotkeyName();
 	void ShowDialogHotkey();
 	void DefineHotkey();
+	BOOL ShellExecuteWait(HWND hwnd, LPCWSTR lpOperation, LPCWSTR lpFile, LPCWSTR lpParameters, LPCWSTR lpDirectory, INT nShowCmd, DWORD dwMilliseconds = 5000);
+	BOOL ExportSettings();
 	HICON GetIconForItem(UINT itemID);
 	HRESULT ResolveLnk(HWND hwnd, LPCSTR szLinkPath, LPWSTR szTargetPath, int iTargetPathSize);
 	HICON GetFileIcon(CString strPath, HICON hIconDefault);

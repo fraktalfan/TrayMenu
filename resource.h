@@ -47,6 +47,7 @@
 #define IDI_ICON_INCLUDE                167
 #define IDI_ICON_HOTKEY                 168
 #define IDI_ICON_LEFTMOST               169
+#define IDI_ICON_EXP_SETTINGS           170
 #define IDC_HOTKEY                      1000
 #define IDC_STATIC_MESSAGE              1001
 #define ID_SETTINGS                     32781
@@ -102,13 +103,14 @@
 #define ID_INC_STARTMENU                32966
 #define ID_DEFINE_HOTKEY                32967
 #define ID_SETTINGS_LEFTMOST            32968
+#define ID_EXPORT_SETTINGS              32969
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        170
-#define _APS_NEXT_COMMAND_VALUE         32969
+#define _APS_NEXT_RESOURCE_VALUE        171
+#define _APS_NEXT_COMMAND_VALUE         32970
 #define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

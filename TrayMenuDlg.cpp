@@ -114,6 +114,7 @@ CTrayMenuDlg::CTrayMenuDlg(CString strFolder, CWnd* pParent /*=nullptr*/)
 	m_hIconIncludeFolder = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_INCLUDE), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 	m_hIconHotkey = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_HOTKEY), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 	m_hIconLeftmost = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_LEFTMOST), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+	m_hIconExportSettings = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_EXP_SETTINGS), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 
 	m_hIconSelected = m_hIconBlue;
 	m_nIconIndex = 0;
@@ -663,8 +664,10 @@ void CTrayMenuDlg::OpenContextMenu()
 	AppendMenuItem(&mnuSettings, ID_SETTINGS_ICON, _T("Tray icon"), &mnuSettingsIcon);
 	AppendMenuItem(&mnuSettings, ID_SETTINGS_COLORS, _T("Menu colors"), &mnuSettingsColors);
 	AppendMenuItem(&mnuSettings, ID_AUTOSTART, _T("Autostart"), &mnuAutostart);
+	AppendMenuItem(&mnuSettings);
 	AppendMenuItem(&mnuSettings, ID_CREATE_SHORTCUT, _T("Create shortcut..."));
 	AppendMenuItem(&mnuSettings, ID_DEFINE_HOTKEY, _T("Define hotkey..."));
+	AppendMenuItem(&mnuSettings, ID_EXPORT_SETTINGS, _T("Export settings..."));
 	AppendMenuItem(&mnuSettings);
 	AppendMenuItem(&mnuSettings, ID_SETTINGS_LOCALIZE, m_bLocalizedNames ? _T("Localized names \u2714") : _T("Localized names"));
 	AppendMenuItem(&mnuSettings, ID_SETTINGS_FOLDF, m_bFoldersFirst ? _T("Folders first \u2714") : _T("Folders first"));
@@ -846,6 +849,11 @@ void CTrayMenuDlg::OpenContextMenu()
 		case ID_DEFINE_HOTKEY:
 		{
 			ShowDialogHotkey();
+			break;
+		}
+		case ID_EXPORT_SETTINGS:
+		{
+			ExportSettings();
 			break;
 		}
 		default:
@@ -1410,24 +1418,6 @@ void CTrayMenuDlg::OnMenuRButtonUp(UINT uMenuPos, CMenu* pMenu)
 	}
 }
 
-class CItemIdListReleaser
-{
-public:
-	explicit CItemIdListReleaser(ITEMIDLIST* idList) : _idList(idList) {}
-	~CItemIdListReleaser() { if (_idList) CoTaskMemFree(_idList); }
-private:
-	ITEMIDLIST* _idList;
-};
-
-class CComInterfaceReleaser
-{
-public:
-	explicit CComInterfaceReleaser(IUnknown* i) : _i(i) {}
-	~CComInterfaceReleaser() { if (_i) _i->Release(); }
-private:
-	IUnknown* _i;
-};
-
 bool CTrayMenuDlg::OpenShellContextMenu(const CString& strPath, int xPos, int yPos, HWND hwndParent)
 {
 	ITEMIDLIST* idList = 0;
@@ -1506,6 +1496,7 @@ HICON CTrayMenuDlg::GetIconForItem(UINT itemID)
 	case ID_SETTINGS_FOLDF: return m_hIconSettingsFoldersFirst;
 	case ID_SETTINGS_CLICK: return m_hIconSettingsClick;
 	case ID_SETTINGS_LEFTMOST: return m_hIconLeftmost;
+	case ID_EXPORT_SETTINGS: return m_hIconExportSettings;
 	case ID_SELECT_FOLDER: return m_hIconSelectFolder;
 	case ID_BROWSE_FOLDER: return m_hIconBrowseFolder;
 	case ID_AUTOSTART: return m_hIconAutostart;
@@ -1966,4 +1957,90 @@ void CTrayMenuDlg::DefineHotkey()
 		m_uHotkeyKeyCode = uHotkeyKeyCodeOld;
 		RegisterHotkey();
 	}
+}
+
+BOOL CTrayMenuDlg::ShellExecuteWait(HWND hwnd, LPCWSTR lpOperation, LPCWSTR lpFile, LPCWSTR lpParameters, LPCWSTR lpDirectory, INT nShowCmd, DWORD dwMilliseconds)
+{
+	BOOL bSuccess = TRUE;
+	SHELLEXECUTEINFO ShExecInfo = { 0 };
+	ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+	ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+	ShExecInfo.hwnd = hwnd;
+	ShExecInfo.lpVerb = lpOperation;
+	ShExecInfo.lpFile = lpFile;
+	ShExecInfo.lpParameters = lpParameters;
+	ShExecInfo.lpDirectory = lpDirectory;
+	ShExecInfo.nShow = nShowCmd;
+	ShExecInfo.hInstApp = NULL;
+	bSuccess = bSuccess && ShellExecuteEx(&ShExecInfo);
+	bSuccess = bSuccess && (ShExecInfo.hProcess && WAIT_OBJECT_0 == WaitForSingleObject(ShExecInfo.hProcess, dwMilliseconds));
+	if (ShExecInfo.hProcess) CloseHandle(ShExecInfo.hProcess);
+	return bSuccess;
+}
+
+BOOL CTrayMenuDlg::ExportSettings()
+{
+	CFileDialog dlg(FALSE, _T(".reg"), _T("TrayMenuSettings.reg"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("Registration files (*.reg)|*.reg||"));
+	if (dlg.DoModal() != IDOK)
+		return FALSE;
+
+	BOOL bResult = FALSE;
+
+	CString strRegExePath = Expand(_T("%windir%\\system32\\reg.exe"));
+
+	FILE* pRegFile = NULL;
+	FILE* pTmpFile = NULL;
+
+	CString strRegFile = dlg.GetPathName();
+	CString strTmpFile = dlg.GetPathName() + _T(".tmp");
+
+	do
+	{
+		if (PathFileExists(strRegFile)) DeleteFile(strRegFile);
+		if (PathFileExists(strTmpFile)) DeleteFile(strTmpFile);
+
+		if (PathFileExists(strRegFile)) break;
+		if (PathFileExists(strTmpFile)) break;
+
+		CString strArgsProfile = _T(" export \"HKCU\\SOFTWARE\\Stefan Bion\\TrayMenu\" \"") + strRegFile + _T("\" /y");
+		CString strArgsAutorun = _T(" export \"HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" \"") + strTmpFile + _T("\" /y");
+
+		if (!ShellExecuteWait(m_hWnd, _T("open"), strRegExePath, strArgsProfile, NULL, SW_HIDE)) break;
+		if (!ShellExecuteWait(m_hWnd, _T("open"), strRegExePath, strArgsAutorun, NULL, SW_HIDE)) break;
+
+		if (!PathFileExists(strRegFile)) break;
+		if (!PathFileExists(strTmpFile)) break;
+
+		if (_wfopen_s(&pRegFile, strRegFile, _T("at, ccs=UNICODE"))) break;
+		if (_wfopen_s(&pTmpFile, strTmpFile, _T("rt, ccs=UNICODE"))) break;
+
+		CString strLine;
+		try
+		{
+			CStdioFile fileReg(pRegFile);
+			CStdioFile fileTmp(pTmpFile);
+
+			while (fileTmp.ReadString(strLine))
+			{
+				if (strLine.Left(1) == _T('[') || strLine.Left(11) == _T("\"TrayMenu #"))
+					fileReg.WriteString(strLine + _T("\n"));
+			}
+			bResult = TRUE;
+		}
+		catch (CException* e)
+		{
+			e->ReportError();
+			break;
+		}
+
+	}
+	while (FALSE);
+
+	if (pRegFile) fclose(pRegFile);
+	if (pTmpFile) fclose(pTmpFile);
+	DeleteFile(strTmpFile);
+
+	if (!bResult) AfxMessageBox(_T("Export failed."));
+
+	return bResult;
 }

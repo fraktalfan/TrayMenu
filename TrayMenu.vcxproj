@@ -215,6 +215,7 @@
     <Image Include="res\close.ico" />
     <Image Include="res\exit.ico" />
     <Image Include="res\explorer.ico" />
+    <Image Include="res\export_settings.ico" />
     <Image Include="res\File.ico" />
     <Image Include="res\Folder.ico" />
     <Image Include="res\folders_first.ico" />

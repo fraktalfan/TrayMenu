@@ -80,6 +80,9 @@
     <Image Include="res\explorer.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
+    <Image Include="res\export_settings.ico">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
     <Image Include="res\File.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>

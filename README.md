@@ -29,7 +29,7 @@ To permanently display the TrayMenu icon in the notification area of the taskbar
 ![00e-taskbar-overflow](https://github.com/fraktalfan/TrayMenu/assets/93649344/c13eb04c-c0e6-46cb-bf87-b060a7709063)
 
 ## Usage
-A normal click on the TrayMenu icon or pressing the key combination Ctrl+F1 (changeable) opens the Start menu for selecting the applications and files stored there. Initially, only a few entries are visible there, e.g. the "Programs" submenu, if it has not yet been supplemented by own entries. A click with the left mouse button on a file opens it; a right click shows the explorer context menu:
+A normal click on the TrayMenu icon or pressing the key combination Ctrl+F1 (changeable) opens the Start menu for selecting the applications and files stored there. Initially, only a few entries are visible there, e.g. the "Programs" submenu, if it has not yet been supplemented by own entries. A click with the left mouse button on a menu item opens the file or application; a right click on a menu item (file or folder) displays the explorer context menu:
 
 ![13-shell-context-menu](https://github.com/fraktalfan/TrayMenu/assets/93649344/b3f7974f-b476-4504-a52a-b7daf5f8a38f)
 
@@ -40,33 +40,30 @@ A right-click on the TrayMenu icon opens the context menu through which various 
 The individual setting options are explained below:
 
 ### Explore
-Selecting "Explore" opens the Start Menu folder in Windows Explorer. Start menu entries can be added, changed, moved or removed there.
+Opens the Start Menu folder in Windows Explorer. Start menu entries can be added, changed, moved or removed there.
 
 ### Reload
-"Reload" reloads the contents of the Start menu folder so that changed folder contents are also visible in the Start menu.
-
-### Settings
-Behind "Settings" there is a submenu with further setting options:
+Reloads the contents of the Start menu folder so that changed folder contents are also visible in the Start menu.
 
 ### Settings > Select folder
-Another folder can be selected via "Select folder", the content of which should be displayed in the Start menu:
+Another folder can be selected here, the content of which should be displayed in the Start menu:
 
 ![03-menu-folder](https://github.com/fraktalfan/TrayMenu/assets/93649344/cae4cce9-8000-4c08-9be6-c8940c219740)
 
 By default, the personal Start Menu folder (C:\Users\username\AppData\Roaming\Microsoft\Windows\Start Menu) is selected. A new folder can be searched for using "Browse". The program remembers the previously searched folders. They are displayed below and can be quickly selected with a single click. The currently selected folder has a check mark next to it. If a folder is to be removed from the list of remembered folders, simply click on the corresponding "Forget" entry in the area below.
 
 ### Settings > Include
-With "Include" you can select which Windows system folders (Desktop or Start menu) should also be included in the start menu:
+Here you can select which Windows system folders (Desktop or Start menu) should also be included in the Start menu:
 
 ![04a-include](https://github.com/fraktalfan/TrayMenu/assets/93649344/596c1c1a-9a78-43c8-b93c-fa40064f076d)
 
 ### Settings > Tray icon
-Another icon, which should be displayed for the currently selected folder in the taskbar, can be selected via the "Tray icon" entry in the Settings menu:
+Another icon can be selected here, which is to be displayed for the currently selected folder in the taskbar:
 
 ![04-tray-icon](https://github.com/fraktalfan/TrayMenu/assets/93649344/8278bb25-8bbb-44a7-acf0-47426cfc7904)
 
 ### Settings > Menu colors
-The colors of the menu can be individually adjusted via "Menu colors". The following presets are available: "Default" (standard Windows colors), "Light", "Dark" (as can be seen in the screenshots) and "Custom" (user-defined):
+The colors of the menu can be individually adjusted. The following presets are available: "Default" (standard Windows colors), "Light", "Dark" (as can be seen in the screenshots) and "Custom" (user-defined):
 
 ![05-menu-colors](https://github.com/fraktalfan/TrayMenu/assets/93649344/aa481e40-4661-434c-8be0-e6879dd0c288)
 
@@ -77,7 +74,7 @@ The custom colors can be changed via "Customize":
 The set colors apply equally to all Start menu folders.
 
 ### Settings > Autostart
-"Autostart" can be used to set TrayMenu to be started automatically when Windows starts:
+Here you can set that TrayMenu is started automatically when Windows starts:
 
 ![07-autostart](https://github.com/fraktalfan/TrayMenu/assets/93649344/c94b27a1-f1e0-47e0-9104-4d8e3a0a9d2e)
 
@@ -86,33 +83,36 @@ Selecting the "Add" entry will add TrayMenu to the autostart for the currently s
 To remove a Start menu folder from Autostart, simply click on the corresponding "Remove" entry.
 
 ### Settings > Create shortcut
-Of course, TrayMenu can also be started manually for individual folders. To do this, you can put a shortcut on the desktop (or in any other folder) via "Create Shortcut" in the Settings menu.
+Of course, TrayMenu can also be started manually for individual folders. To do this, you can put a shortcut on the desktop (or in any other folder).
 
 ![12-desktop-shortcut](https://github.com/fraktalfan/TrayMenu/assets/93649344/7c7b7c39-3119-4f63-8845-4f944c19aed3)
 
 ### Settings > Define hotkey
-Instead of a mouse click, the start menu can also be opened with a key combination. The default is Ctrl+F1, but this can be changed via "Define hotkey":
+Instead of a mouse click, the start menu can also be opened with a key combination. The default is Ctrl+F1, but this can be changed here:
 
 ![11-define-hotkey](https://github.com/fraktalfan/TrayMenu/assets/93649344/517dc0ae-fd9b-447d-a60f-5199be5c1abe)
 
 For each instance of TrayMenu (i.e. for each Start menu folder) a separate hotkey can (and should) be defined.
 
-Also the following options are not globally valid (like the menu colors), but individually for each start menu folder:
+### Settings > Export settings
+Exports all TrayMenu settings (including autostart) to a .reg file.
+
+The following options apply individually to each Start Menu folder:
 
 ### Settings > Localized names
-The "Localized names" option determines whether the names of certain folders and files are displayed in the original English notation (e.g. "Startup" and "Programs") or in the local language notation (e.g. "Autostart" and "Programme" in German).
+This option determines whether the names of certain folders and files are displayed in the original English notation (e.g. "Startup" and "Programs") or in the local language notation (e.g. "Autostart" and "Programme" in German).
 
 ### Settings > Folders first
-The "Folders first" option determines whether folders (submenus) should be displayed first or in alphabetical order along with the files.
+This option determines whether folders (submenus) should be displayed first or in alphabetical order along with the files.
 
 ### Settings > Hover to open
-If the "Hover to open" option is enabled, to open the Start menu it is sufficient to hold the mouse over the tray icon without clicking on it.
+If this option is enabled, to open the Start menu it is sufficient to hold the mouse over the tray icon without clicking on it.
 
 ### Settings > Open leftmost
-With the "Open leftmost" option enabled, the Start menu opens, when activated via the hotkey, on the left edge of the screen instead of at the tray icon.
+With this option enabled, the Start menu opens, when activated via the hotkey, on the left edge of the screen instead of at the tray icon.
 
 ### About
-Finally, there is the "About" item, which displays the program version and contains a link to access this website:
+Displays the program version and contains a link to access this website:
 
 ![09-about](https://github.com/fraktalfan/TrayMenu/assets/93649344/e361ac7f-dae3-4ac4-ad65-195fc2105b18)
 
@@ -130,6 +130,11 @@ In the example above, a shortcut to the folder "C:\ProgramData\Microsoft\Windows
 To include the Windows system folders "Desktop" and "Start menu" there is the setting "Include" in the "Settings" menu since version 1.1.
 
 ## Updates
+
+### Version 1.3 (04.08.2023)
+
+* New: "Export settings" function to save the settings.
+* New: Shell (Explorer) context menu now also for folder items.
 
 ### Version 1.2 (03.08.2023)
 

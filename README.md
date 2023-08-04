@@ -35,7 +35,7 @@ A normal click on the TrayMenu icon or pressing the key combination Ctrl+F1 (cha
 
 A right-click on the TrayMenu icon opens the context menu through which various settings can be made:
 
-![02-settings](https://github.com/fraktalfan/TrayMenu/assets/93649344/846b5f10-1560-4acb-a3a8-c798db24c54e)
+![02-settings](https://github.com/fraktalfan/TrayMenu/assets/93649344/0abfda75-ef11-4153-9e57-288a3d4bd703)
 
 The individual setting options are explained below:
 
@@ -48,35 +48,35 @@ Reloads the contents of the Start menu folder so that changed folder contents ar
 ### Settings > Select folder
 Another folder can be selected here, the content of which should be displayed in the Start menu:
 
-![03-menu-folder](https://github.com/fraktalfan/TrayMenu/assets/93649344/cae4cce9-8000-4c08-9be6-c8940c219740)
+![03-menu-folder](https://github.com/fraktalfan/TrayMenu/assets/93649344/bb803526-551b-4809-8d8a-c4aa2e2fc8c1)
 
 By default, the personal Start Menu folder (C:\Users\username\AppData\Roaming\Microsoft\Windows\Start Menu) is selected. A new folder can be searched for using "Browse". The program remembers the previously searched folders. They are displayed below and can be quickly selected with a single click. The currently selected folder has a check mark next to it. If a folder is to be removed from the list of remembered folders, simply click on the corresponding "Forget" entry in the area below.
 
 ### Settings > Include
 Here you can select which Windows system folders (Desktop or Start menu) should also be included in the Start menu:
 
-![04a-include](https://github.com/fraktalfan/TrayMenu/assets/93649344/596c1c1a-9a78-43c8-b93c-fa40064f076d)
+![04a-include](https://github.com/fraktalfan/TrayMenu/assets/93649344/8b55d83c-61ef-4b92-8554-174bc727e756)
 
 ### Settings > Tray icon
 Another icon can be selected here, which is to be displayed for the currently selected folder in the taskbar:
 
-![04-tray-icon](https://github.com/fraktalfan/TrayMenu/assets/93649344/8278bb25-8bbb-44a7-acf0-47426cfc7904)
+![04-tray-icon](https://github.com/fraktalfan/TrayMenu/assets/93649344/778ba21a-bffe-4e29-b7ea-99181cfe5037)
 
 ### Settings > Menu colors
 The colors of the menu can be individually adjusted. The following presets are available: "Default" (standard Windows colors), "Light", "Dark" (as can be seen in the screenshots) and "Custom" (user-defined):
 
-![05-menu-colors](https://github.com/fraktalfan/TrayMenu/assets/93649344/aa481e40-4661-434c-8be0-e6879dd0c288)
+![05-menu-colors](https://github.com/fraktalfan/TrayMenu/assets/93649344/e7305042-3823-4dce-b6ef-80276002faac)
 
 The custom colors can be changed via "Customize":
 
-![06-menu-colors-customize](https://github.com/fraktalfan/TrayMenu/assets/93649344/730c12e4-0055-4755-a913-6f4af7d170ca)
+![06-menu-colors-customize](https://github.com/fraktalfan/TrayMenu/assets/93649344/4fd20c21-d99b-4ffe-b585-6213ab16905f)
 
 The set colors apply equally to all Start menu folders.
 
 ### Settings > Autostart
 Here you can set that TrayMenu is started automatically when Windows starts:
 
-![07-autostart](https://github.com/fraktalfan/TrayMenu/assets/93649344/c94b27a1-f1e0-47e0-9104-4d8e3a0a9d2e)
+![07-autostart](https://github.com/fraktalfan/TrayMenu/assets/93649344/46f5f435-022e-469a-8f1d-8d0dddf4003e)
 
 Selecting the "Add" entry will add TrayMenu to the autostart for the currently selected folder. After selecting another folder (via "Select folder"), this folder can also be added to autostart. Any number of instances of TrayMenu for different folders can be opened at the same time or started automatically with Windows. For better differentiation, a different icon color can be selected for each instance (i.e. for each Start menu).
 
@@ -114,7 +114,7 @@ With this option enabled, the Start menu opens, when activated via the hotkey, o
 ### About
 Displays the program version and contains a link to access this website:
 
-![09-about](https://github.com/fraktalfan/TrayMenu/assets/93649344/e361ac7f-dae3-4ac4-ad65-195fc2105b18)
+![09-about](https://github.com/fraktalfan/TrayMenu/assets/93649344/f801b4d1-1283-4ad5-b83d-e2ca5e5b1de1)
 
 ### Exit and Close
 "Exit" exits TrayMenu, "Close" just closes the menu.

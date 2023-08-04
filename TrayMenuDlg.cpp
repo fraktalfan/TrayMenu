@@ -125,12 +125,13 @@ CTrayMenuDlg::CTrayMenuDlg(CString strFolder, CWnd* pParent /*=nullptr*/)
 CTrayMenuDlg::~CTrayMenuDlg()
 {
 	DeleteData();
+
+	if (SUCCEEDED(m_hrCoInitialize))
+		CoUninitialize();
 }
 
 void CTrayMenuDlg::DeleteData()
 {
-	// Objekte in umgekehrter Reihenfolge ihrer Erstellung zerstören:
-
 	m_entryRoot.Delete();
 	m_arrEntries.clear();
 
@@ -141,9 +142,6 @@ void CTrayMenuDlg::DeleteData()
 		::DeleteObject(m_hbrMenuBackground);
 		m_hbrMenuBackground = 0;
 	}
-
-	if (SUCCEEDED(m_hrCoInitialize))
-		CoUninitialize();
 }
 
 void CTrayMenuDlg::DoDataExchange(CDataExchange* pDX)
@@ -681,7 +679,7 @@ void CTrayMenuDlg::OpenContextMenu()
 	mnuAbout.CreatePopupMenu();
 
 	AppendMenuItem(&mnuAbout, ID_ABOUT_TITLE, _T("TrayMenu"));
-	AppendMenuItem(&mnuAbout, ID_ABOUT_VERSION, _T("Version 1.2"));
+	AppendMenuItem(&mnuAbout, ID_ABOUT_VERSION, _T("Version 1.3"));
 	AppendMenuItem(&mnuAbout, ID_ABOUT_WEBSITE, _T("Go to website"));
 
 	mnuAbout.SetDefaultItem(ID_ABOUT_TITLE);
@@ -1430,8 +1428,11 @@ void CTrayMenuDlg::OnRButtonUp(UINT nFlags,	CPoint point)
 	}
 }
 
-void CTrayMenuDlg::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
+void CTrayMenuDlg::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSubMenu)
 {
+	CRect rcItem;
+	GetMenuItemRect(m_hWnd, hSubMenu, nItemID, rcItem);
+
 	// Selektiertes Submenü-Item merken:
 	if (nFlags & MF_POPUP)
 	{
@@ -1439,10 +1440,10 @@ void CTrayMenuDlg::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
 		mii.cbSize = sizeof(mii);
 		mii.fMask = MIIM_ID;
 
-		if (GetMenuItemInfo(hSysMenu, nItemID, TRUE, &mii))
+		if (GetMenuItemInfo(hSubMenu, nItemID, TRUE, &mii))
 		{
-			GetMenuItemRect(m_hWnd, hSysMenu, nItemID, m_rcItemMenuSelect);
-			m_uItemIDMenuSelect = mii.wID;
+			m_rcItemMenuSelect = rcItem;
+			nItemID = m_uItemIDMenuSelect = mii.wID;
 		}
 	}
 }

@@ -336,7 +336,7 @@ protected:
 	afx_msg void OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpmis);
 	afx_msg void OnMenuRButtonUp(UINT uMenuPos, CMenu* pMenu);
 	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
-	afx_msg void OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu);
+	afx_msg void OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSubMenu);
 	bool OpenShellContextMenu(const CString& strPath, int xPos, int yPos, HWND hwndParent);
 	afx_msg void OnHotKey(UINT id, UINT fsModifiers, UINT vk);
 	CString GetHotkeyName();

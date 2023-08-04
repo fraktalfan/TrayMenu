@@ -164,6 +164,8 @@ BEGIN_MESSAGE_MAP(CTrayMenuDlg, CDialogEx)
 	ON_WM_INITMENUPOPUP()
 	ON_WM_HOTKEY()
 	ON_WM_MENURBUTTONUP()
+	ON_WM_RBUTTONUP()
+	ON_WM_MENUSELECT()
 END_MESSAGE_MAP()
 
 
@@ -1404,16 +1406,43 @@ void CTrayMenuDlg::OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpmis)
 
 void CTrayMenuDlg::OnMenuRButtonUp(UINT uMenuPos, CMenu* pMenu)
 {
-	TRACE("uMenuPos = %d\n", uMenuPos);
+	// Wird nur bei Rechtsklick auf Items aufgerufen, die keine Submenüs öffnen.
 	UINT uMenuId = pMenu->GetMenuItemID(uMenuPos);
-	if (uMenuId > 0)
+	if (uMenuId >= MENU_ID_START && uMenuId - MENU_ID_START < m_arrEntries.size())
 	{
-		if (uMenuId >= MENU_ID_START && uMenuId - MENU_ID_START < m_arrEntries.size())
+		CEntry* pEntry = m_arrEntries[uMenuId - MENU_ID_START];
+		CPoint ptMenuPos;
+		GetCursorPos(&ptMenuPos);
+		OpenShellContextMenu(pEntry->strPath, ptMenuPos.x, ptMenuPos.y, m_hWnd);
+	}
+}
+
+void CTrayMenuDlg::OnRButtonUp(UINT nFlags,	CPoint point)
+{
+	// Rechtsklick auf ein zuvor gemerktes Submenü-Item:
+	if (m_rcItemMenuSelect.PtInRect(point))
+	{
+		if (m_uItemIDMenuSelect >= MENU_ID_START && m_uItemIDMenuSelect - MENU_ID_START < m_arrEntries.size())
 		{
-			CEntry* pEntry = m_arrEntries[uMenuId - MENU_ID_START];
-			CPoint ptMenuPos;
-			GetCursorPos(&ptMenuPos);
-			OpenShellContextMenu(pEntry->strPath, ptMenuPos.x, ptMenuPos.y, m_hWnd);
+			CEntry* pEntry = m_arrEntries[m_uItemIDMenuSelect - MENU_ID_START];
+			OpenShellContextMenu(pEntry->strPath, point.x, point.y, m_hWnd);
+		}
+	}
+}
+
+void CTrayMenuDlg::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
+{
+	// Selektiertes Submenü-Item merken:
+	if (nFlags & MF_POPUP)
+	{
+		MENUITEMINFO mii;
+		mii.cbSize = sizeof(mii);
+		mii.fMask = MIIM_ID;
+
+		if (GetMenuItemInfo(hSysMenu, nItemID, TRUE, &mii))
+		{
+			GetMenuItemRect(m_hWnd, hSysMenu, nItemID, m_rcItemMenuSelect);
+			m_uItemIDMenuSelect = mii.wID;
 		}
 	}
 }

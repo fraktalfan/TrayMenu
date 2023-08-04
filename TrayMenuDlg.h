@@ -334,7 +334,9 @@ protected:
 	afx_msg void OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpdis);
 	afx_msg void OnInitMenuPopup(CMenu* pMenu, UINT nIndex, BOOL bSysMenu);
 	afx_msg void OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpmis);
-	void OnMenuRButtonUp(UINT uMenuPos, CMenu* pMenu);
+	afx_msg void OnMenuRButtonUp(UINT uMenuPos, CMenu* pMenu);
+	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
+	afx_msg void OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu);
 	bool OpenShellContextMenu(const CString& strPath, int xPos, int yPos, HWND hwndParent);
 	afx_msg void OnHotKey(UINT id, UINT fsModifiers, UINT vk);
 	CString GetHotkeyName();
@@ -394,4 +396,6 @@ private:
 	UINT m_uHotkeyKeyCode;
 	CHotKeyCtrl m_hotKeyCtrl;
 	CStatic m_stcDlgMessage;
+	CRect m_rcItemMenuSelect;
+	UINT m_uItemIDMenuSelect;
 };

@@ -31,7 +31,7 @@ To permanently display the TrayMenu icon in the notification area of the taskbar
 ## Usage
 A normal click on the TrayMenu icon or pressing the key combination Ctrl+F1 (changeable) opens the Start menu for selecting the applications and files stored there. Initially, only a few entries are visible there, e.g. the "Programs" submenu, if it has not yet been supplemented by own entries. A click with the left mouse button on a menu item opens the file or application; a right click on a menu item (file or folder) displays the explorer context menu:
 
-![13-shell-context-menu](https://github.com/fraktalfan/TrayMenu/assets/93649344/b3f7974f-b476-4504-a52a-b7daf5f8a38f)
+![13-shell-context-menu](https://github.com/fraktalfan/TrayMenu/assets/93649344/d07aed47-3e80-4f82-a8b2-cf36b74dd4b3)
 
 A right-click on the TrayMenu icon opens the context menu through which various settings can be made:
 

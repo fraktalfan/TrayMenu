@@ -183,7 +183,7 @@ BOOL CTrayMenuDlg::OnInitDialog()
 	ModifyStyleEx(WS_EX_APPWINDOW, 0);
 
 	if (!SUCCEEDED(m_hrCoInitialize))
-		AfxMessageBox(_T("CoInitialize failed."));
+		AfxMessageBox(L"CoInitialize failed.");
 
 	LoadSettings();
 	CreateTrayIcon();
@@ -273,18 +273,18 @@ void CTrayMenuDlg::OnCancel()
 
 CString CTrayMenuDlg::GetFolderName()
 {
-	int nPos = m_strFolder.ReverseFind('\\');
+	int nPos = m_strFolder.ReverseFind(L'\\');
 	if (nPos > 0)
 		return m_strFolder.Right(m_strFolder.GetLength() - nPos - 1);
 	else
-		return _T("TrayMenu");
+		return L"TrayMenu";
 }
 
 CString CTrayMenuDlg::GetProfileName()
 {
 	CString strProfile = m_strFolder;
-	strProfile.Replace(_T('\\'), _T('/'));
-	return _T("Folders\\") + strProfile;
+	strProfile.Replace(L'\\', L'/');
+	return L"Folders\\" + strProfile;
 }
 
 void CTrayMenuDlg::LoadSettings()
@@ -294,23 +294,23 @@ void CTrayMenuDlg::LoadSettings()
 	if (strProfile.IsEmpty())
 		return;
 
-	m_dwMenuIdIconSelected = AfxGetApp()->GetProfileInt(strProfile, _T("TrayIcon"), ID_ICON_BLUE);
-	m_bIncludeDesktop = AfxGetApp()->GetProfileInt(strProfile, _T("IncludeDesktop"), FALSE);
-	m_bIncludeStartmenu = AfxGetApp()->GetProfileInt(strProfile, _T("IncludeStartmenu"), FALSE);
-	m_bLocalizedNames = AfxGetApp()->GetProfileInt(strProfile, _T("LocalizedNames"), TRUE);
-	m_bFoldersFirst = AfxGetApp()->GetProfileInt(strProfile, _T("FoldersFirst"), TRUE);
-	m_bHoverToOpen = AfxGetApp()->GetProfileInt(strProfile, _T("HoverToOpen"), FALSE);
-	m_bOpenLeftmost = AfxGetApp()->GetProfileInt(strProfile, _T("OpenLeftmost"), TRUE);
-	m_uHotkeyModifiers = AfxGetApp()->GetProfileInt(strProfile, _T("HotkeyModifiers"), MOD_CONTROL);
-	m_uHotkeyKeyCode = AfxGetApp()->GetProfileInt(strProfile, _T("HotkeyKeyCode"), VK_F1);
+	m_dwMenuIdIconSelected = AfxGetApp()->GetProfileInt(strProfile, L"TrayIcon", ID_ICON_BLUE);
+	m_bIncludeDesktop = AfxGetApp()->GetProfileInt(strProfile, L"IncludeDesktop", FALSE);
+	m_bIncludeStartmenu = AfxGetApp()->GetProfileInt(strProfile, L"IncludeStartmenu", FALSE);
+	m_bLocalizedNames = AfxGetApp()->GetProfileInt(strProfile, L"LocalizedNames", TRUE);
+	m_bFoldersFirst = AfxGetApp()->GetProfileInt(strProfile, L"FoldersFirst", TRUE);
+	m_bHoverToOpen = AfxGetApp()->GetProfileInt(strProfile, L"HoverToOpen", FALSE);
+	m_bOpenLeftmost = AfxGetApp()->GetProfileInt(strProfile, L"OpenLeftmost", TRUE);
+	m_uHotkeyModifiers = AfxGetApp()->GetProfileInt(strProfile, L"HotkeyModifiers", MOD_CONTROL);
+	m_uHotkeyKeyCode = AfxGetApp()->GetProfileInt(strProfile, L"HotkeyKeyCode", VK_F1);
 
-	int iMenuStyle = AfxGetApp()->GetProfileInt(_T("MenuStyles"), _T("Style"), (int)MenuStyle::DEFAULT);
-	m_menuStyleCustom.colMenuText = (COLORREF)AfxGetApp()->GetProfileInt(_T("MenuStyles"), _T("TextColor"), (int)m_menuStyleCustom.colMenuText);
-	m_menuStyleCustom.colMenuBackground = (COLORREF)AfxGetApp()->GetProfileInt(_T("MenuStyles"), _T("BackgroundColor"), (int)m_menuStyleCustom.colMenuBackground);
-	m_menuStyleCustom.colMenuSeparator = (COLORREF)AfxGetApp()->GetProfileInt(_T("MenuStyles"), _T("SeparatorColor"), (int)m_menuStyleCustom.colMenuSeparator);
-	m_menuStyleCustom.colMenuSelectionOuter = (COLORREF)AfxGetApp()->GetProfileInt(_T("MenuStyles"), _T("SelectionOuterColor"), (int)m_menuStyleCustom.colMenuSelectionOuter);
-	m_menuStyleCustom.colMenuSelectionInner = (COLORREF)AfxGetApp()->GetProfileInt(_T("MenuStyles"), _T("SelectionInnerColor"), (int)m_menuStyleCustom.colMenuSelectionInner);
-	m_menuStyleCustom.colMenuSelectionBackg = (COLORREF)AfxGetApp()->GetProfileInt(_T("MenuStyles"), _T("SelectionBackgColor"), (int)m_menuStyleCustom.colMenuSelectionBackg);
+	int iMenuStyle = AfxGetApp()->GetProfileInt(L"MenuStyles", L"Style", (int)MenuStyle::DEFAULT);
+	m_menuStyleCustom.colMenuText = (COLORREF)AfxGetApp()->GetProfileInt(L"MenuStyles", L"TextColor", (int)m_menuStyleCustom.colMenuText);
+	m_menuStyleCustom.colMenuBackground = (COLORREF)AfxGetApp()->GetProfileInt(L"MenuStyles", L"BackgroundColor", (int)m_menuStyleCustom.colMenuBackground);
+	m_menuStyleCustom.colMenuSeparator = (COLORREF)AfxGetApp()->GetProfileInt(L"MenuStyles", L"SeparatorColor", (int)m_menuStyleCustom.colMenuSeparator);
+	m_menuStyleCustom.colMenuSelectionOuter = (COLORREF)AfxGetApp()->GetProfileInt(L"MenuStyles", L"SelectionOuterColor", (int)m_menuStyleCustom.colMenuSelectionOuter);
+	m_menuStyleCustom.colMenuSelectionInner = (COLORREF)AfxGetApp()->GetProfileInt(L"MenuStyles", L"SelectionInnerColor", (int)m_menuStyleCustom.colMenuSelectionInner);
+	m_menuStyleCustom.colMenuSelectionBackg = (COLORREF)AfxGetApp()->GetProfileInt(L"MenuStyles", L"SelectionBackgColor", (int)m_menuStyleCustom.colMenuSelectionBackg);
 
 	SelectIcon(m_dwMenuIdIconSelected);
 	SetMenuStyle((MenuStyle)iMenuStyle, FALSE);
@@ -324,23 +324,23 @@ void CTrayMenuDlg::SaveSettings()
 	if (strProfile.IsEmpty())
 		return;
 
-	AfxGetApp()->WriteProfileInt(strProfile, _T("TrayIcon"), m_dwMenuIdIconSelected);
-	AfxGetApp()->WriteProfileInt(strProfile, _T("IncludeDesktop"), m_bIncludeDesktop);
-	AfxGetApp()->WriteProfileInt(strProfile, _T("IncludeStartmenu"), m_bIncludeStartmenu);
-	AfxGetApp()->WriteProfileInt(strProfile, _T("LocalizedNames"), m_bLocalizedNames);
-	AfxGetApp()->WriteProfileInt(strProfile, _T("FoldersFirst"), m_bFoldersFirst);
-	AfxGetApp()->WriteProfileInt(strProfile, _T("HoverToOpen"), m_bHoverToOpen);
-	AfxGetApp()->WriteProfileInt(strProfile, _T("OpenLeftmost"), m_bOpenLeftmost);
-	AfxGetApp()->WriteProfileInt(strProfile, _T("HotkeyModifiers"), m_uHotkeyModifiers);
-	AfxGetApp()->WriteProfileInt(strProfile, _T("HotkeyKeyCode"), m_uHotkeyKeyCode);
+	AfxGetApp()->WriteProfileInt(strProfile, L"TrayIcon", m_dwMenuIdIconSelected);
+	AfxGetApp()->WriteProfileInt(strProfile, L"IncludeDesktop", m_bIncludeDesktop);
+	AfxGetApp()->WriteProfileInt(strProfile, L"IncludeStartmenu", m_bIncludeStartmenu);
+	AfxGetApp()->WriteProfileInt(strProfile, L"LocalizedNames", m_bLocalizedNames);
+	AfxGetApp()->WriteProfileInt(strProfile, L"FoldersFirst", m_bFoldersFirst);
+	AfxGetApp()->WriteProfileInt(strProfile, L"HoverToOpen", m_bHoverToOpen);
+	AfxGetApp()->WriteProfileInt(strProfile, L"OpenLeftmost", m_bOpenLeftmost);
+	AfxGetApp()->WriteProfileInt(strProfile, L"HotkeyModifiers", m_uHotkeyModifiers);
+	AfxGetApp()->WriteProfileInt(strProfile, L"HotkeyKeyCode", m_uHotkeyKeyCode);
 
-	AfxGetApp()->WriteProfileInt(_T("MenuStyles"), _T("Style"), (int)m_menuStyleController.menuStyle);
-	AfxGetApp()->WriteProfileInt(_T("MenuStyles"), _T("TextColor"), (int)m_menuStyleCustom.colMenuText);
-	AfxGetApp()->WriteProfileInt(_T("MenuStyles"), _T("BackgroundColor"), (int)m_menuStyleCustom.colMenuBackground);
-	AfxGetApp()->WriteProfileInt(_T("MenuStyles"), _T("SeparatorColor"), (int)m_menuStyleCustom.colMenuSeparator);
-	AfxGetApp()->WriteProfileInt(_T("MenuStyles"), _T("SelectionOuterColor"), (int)m_menuStyleCustom.colMenuSelectionOuter);
-	AfxGetApp()->WriteProfileInt(_T("MenuStyles"), _T("SelectionInnerColor"), (int)m_menuStyleCustom.colMenuSelectionInner);
-	AfxGetApp()->WriteProfileInt(_T("MenuStyles"), _T("SelectionBackgColor"), (int)m_menuStyleCustom.colMenuSelectionBackg);
+	AfxGetApp()->WriteProfileInt(L"MenuStyles", L"Style", (int)m_menuStyleController.menuStyle);
+	AfxGetApp()->WriteProfileInt(L"MenuStyles", L"TextColor", (int)m_menuStyleCustom.colMenuText);
+	AfxGetApp()->WriteProfileInt(L"MenuStyles", L"BackgroundColor", (int)m_menuStyleCustom.colMenuBackground);
+	AfxGetApp()->WriteProfileInt(L"MenuStyles", L"SeparatorColor", (int)m_menuStyleCustom.colMenuSeparator);
+	AfxGetApp()->WriteProfileInt(L"MenuStyles", L"SelectionOuterColor", (int)m_menuStyleCustom.colMenuSelectionOuter);
+	AfxGetApp()->WriteProfileInt(L"MenuStyles", L"SelectionInnerColor", (int)m_menuStyleCustom.colMenuSelectionInner);
+	AfxGetApp()->WriteProfileInt(L"MenuStyles", L"SelectionBackgColor", (int)m_menuStyleCustom.colMenuSelectionBackg);
 }
 
 void CTrayMenuDlg::SetMenuStyle(MenuStyle eMenuStyle, BOOL bReloadAndSave)
@@ -572,85 +572,85 @@ void CTrayMenuDlg::OpenContextMenu()
 	// Settings-Submenü "Select folder"
 	CMenu mnuSelectFolder;
 	mnuSelectFolder.CreatePopupMenu();
-	AppendMenuItem(&mnuSelectFolder, ID_BROWSE_FOLDER, _T("Browse..."));
+	AppendMenuItem(&mnuSelectFolder, ID_BROWSE_FOLDER, L"Browse...");
 	// Existierende Folder hinzufügen (Auswahl)
 	CString strFolder;
 	DWORD dwIndex = 0;
 	UINT uMenuID = ID_SEL_FOLDER;
-	while ((strFolder = FindNextProfile(dwIndex)) != _T("") && uMenuID < ID_SEL_FOLDER_MAX)
+	while ((strFolder = FindNextProfile(dwIndex)) != L"" && uMenuID < ID_SEL_FOLDER_MAX)
 	{
 		if (uMenuID == ID_SEL_FOLDER) AppendMenuItem(&mnuSelectFolder);
-		AppendMenuItem(&mnuSelectFolder, uMenuID, strFolder + (strFolder == m_strFolder ? _T(" \u2714") : _T("")));
+		AppendMenuItem(&mnuSelectFolder, uMenuID, strFolder + (strFolder == m_strFolder ? L" \u2714" : L""));
 		uMenuID++;
 	}
 	// Existierende Folder hinzufügen (Löschen)
 	dwIndex = 0;
 	uMenuID = ID_DEL_FOLDER;
-	while ((strFolder = FindNextProfile(dwIndex)) != _T("") && uMenuID < ID_DEL_FOLDER_MAX)
+	while ((strFolder = FindNextProfile(dwIndex)) != L"" && uMenuID < ID_DEL_FOLDER_MAX)
 	{
 		if (strFolder != m_strFolder)
 		{
 			if (uMenuID == ID_DEL_FOLDER) AppendMenuItem(&mnuSelectFolder);
-			AppendMenuItem(&mnuSelectFolder, uMenuID++, _T("Forget ") + strFolder);
+			AppendMenuItem(&mnuSelectFolder, uMenuID++, L"Forget " + strFolder);
 		}
 	}
 
 	// Settings-Submenü "Include"
 	CMenu mnuSettingsInclude;
 	mnuSettingsInclude.CreatePopupMenu();
-	AppendMenuItem(&mnuSettingsInclude, ID_INC_DESKTOP, _T("Desktop") + CString(m_bIncludeDesktop ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsInclude, ID_INC_STARTMENU, _T("Start menu") + CString(m_bIncludeStartmenu ? _T(" \u2714") : _T("")));
+	AppendMenuItem(&mnuSettingsInclude, ID_INC_DESKTOP, L"Desktop" + CString(m_bIncludeDesktop ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsInclude, ID_INC_STARTMENU, L"Start menu" + CString(m_bIncludeStartmenu ? L" \u2714" : L""));
 
 	// Settings-Submenü "Icon"
 	CMenu mnuSettingsIcon;
 	mnuSettingsIcon.CreatePopupMenu();
-	AppendMenuItem(&mnuSettingsIcon, ID_ICON_RED, _T("Red") + CString(m_hIconSelected == m_hIconRed ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsIcon, ID_ICON_ORANGE, _T("Orange") + CString(m_hIconSelected == m_hIconOrange ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsIcon, ID_ICON_YELLOW, _T("Yellow") + CString(m_hIconSelected == m_hIconYellow ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsIcon, ID_ICON_LIME, _T("Lime") + CString(m_hIconSelected == m_hIconLime ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsIcon, ID_ICON_GREEN, _T("Green") + CString(m_hIconSelected == m_hIconGreen ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsIcon, ID_ICON_BLUE, _T("Blue") + CString(m_hIconSelected == m_hIconBlue ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsIcon, ID_ICON_VIOLET, _T("Violet") + CString(m_hIconSelected == m_hIconViolet ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsIcon, ID_ICON_PINK, _T("Pink") + CString(m_hIconSelected == m_hIconPink ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsIcon, ID_ICON_MULTICOLOR, _T("Multicolor") + CString(m_hIconSelected == m_hIconMixed ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsIcon, ID_ICON_BLACK, _T("Black") + CString(m_hIconSelected == m_hIconBlack ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsIcon, ID_ICON_GREY, _T("Grey") + CString(m_hIconSelected == m_hIconGrey ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsIcon, ID_ICON_WHITE, _T("White") + CString(m_hIconSelected == m_hIconWhite ? _T(" \u2714") : _T("")));
+	AppendMenuItem(&mnuSettingsIcon, ID_ICON_RED, L"Red" + CString(m_hIconSelected == m_hIconRed ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsIcon, ID_ICON_ORANGE, L"Orange" + CString(m_hIconSelected == m_hIconOrange ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsIcon, ID_ICON_YELLOW, L"Yellow" + CString(m_hIconSelected == m_hIconYellow ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsIcon, ID_ICON_LIME, L"Lime" + CString(m_hIconSelected == m_hIconLime ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsIcon, ID_ICON_GREEN, L"Green" + CString(m_hIconSelected == m_hIconGreen ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsIcon, ID_ICON_BLUE, L"Blue" + CString(m_hIconSelected == m_hIconBlue ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsIcon, ID_ICON_VIOLET, L"Violet" + CString(m_hIconSelected == m_hIconViolet ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsIcon, ID_ICON_PINK, L"Pink" + CString(m_hIconSelected == m_hIconPink ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsIcon, ID_ICON_MULTICOLOR, L"Multicolor" + CString(m_hIconSelected == m_hIconMixed ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsIcon, ID_ICON_BLACK, L"Black" + CString(m_hIconSelected == m_hIconBlack ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsIcon, ID_ICON_GREY, L"Grey" + CString(m_hIconSelected == m_hIconGrey ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsIcon, ID_ICON_WHITE, L"White" + CString(m_hIconSelected == m_hIconWhite ? L" \u2714" : L""));
 
 	// Settings-Submenü "Custom"
 	CMenu mnuSettingsCustom;
 	mnuSettingsCustom.CreatePopupMenu();
-	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_BGD, _T("Background"));
-	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_TXT, _T("Item text"));
-	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_SEP, _T("Separator"));
-	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_IBG, _T("Selection - background"));
-	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_IOB, _T("Selection - outer border"));
-	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_IIB, _T("Selection - inner border"));
+	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_BGD, L"Background");
+	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_TXT, L"Item text");
+	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_SEP, L"Separator");
+	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_IBG, L"Selection - background");
+	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_IOB, L"Selection - outer border");
+	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_IIB, L"Selection - inner border");
 
 	// Settings-Submenü "Menu colors"
 	CMenu mnuSettingsColors;
 	mnuSettingsColors.CreatePopupMenu();
-	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_DEF, _T("Default") + CString (m_menuStyleController.menuStyle == MenuStyle::DEFAULT ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_LIG, _T("Light") + CString(m_menuStyleController.menuStyle == MenuStyle::LIGHT ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_DRK, _T("Dark") + CString(m_menuStyleController.menuStyle == MenuStyle::DARK ? _T(" \u2714") : _T("")));
-	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_OWN, _T("Custom") + CString(m_menuStyleController.menuStyle == MenuStyle::CUSTOM ? _T(" \u2714") : _T("")));
+	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_DEF, L"Default" + CString (m_menuStyleController.menuStyle == MenuStyle::DEFAULT ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_LIG, L"Light" + CString(m_menuStyleController.menuStyle == MenuStyle::LIGHT ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_DRK, L"Dark" + CString(m_menuStyleController.menuStyle == MenuStyle::DARK ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_OWN, L"Custom" + CString(m_menuStyleController.menuStyle == MenuStyle::CUSTOM ? L" \u2714" : L""));
 	AppendMenuItem(&mnuSettingsColors);
-	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_CUST, _T("Customize"), &mnuSettingsCustom);
+	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_CUST, L"Customize", &mnuSettingsCustom);
 
 	// Settings-Submenü "Autostart"
 	CMenu mnuAutostart;
 	mnuAutostart.CreatePopupMenu();
 	// Item zum Hinzufügen des aktuellen Ordners zum Autostart
 	BOOL bAddItem = !FindInAutostart(m_strFolder, FALSE);
-	if (bAddItem) AppendMenuItem(&mnuAutostart, ID_ADD_FOLDER, _T("Add ") + m_strFolder);
+	if (bAddItem) AppendMenuItem(&mnuAutostart, ID_ADD_FOLDER, L"Add " + m_strFolder);
 	// Items zum Entfernen von Ordnern aus dem Autostart
 	dwIndex = 0;
 	uMenuID = ID_REM_FOLDER;
 	m_arrAutostartFolders.clear();
-	while ((strFolder = FindNextAutostartFolder(dwIndex)) != _T("") && uMenuID < ID_REM_FOLDER_MAX)
+	while ((strFolder = FindNextAutostartFolder(dwIndex)) != L"" && uMenuID < ID_REM_FOLDER_MAX)
 	{
 		if (bAddItem && uMenuID == ID_REM_FOLDER) AppendMenuItem(&mnuAutostart);
-		AppendMenuItem(&mnuAutostart, uMenuID, _T("Remove ") + strFolder + (strFolder == m_strFolder ? _T(" \u2714") : _T("")));
+		AppendMenuItem(&mnuAutostart, uMenuID, L"Remove " + strFolder + (strFolder == m_strFolder ? L" \u2714" : L""));
 		m_arrAutostartFolders.push_back(strFolder);
 		uMenuID++;
 	}
@@ -659,28 +659,28 @@ void CTrayMenuDlg::OpenContextMenu()
 	CMenu mnuSettings;
 
 	mnuSettings.CreatePopupMenu();
-	AppendMenuItem(&mnuSettings, ID_SELECT_FOLDER, _T("Select folder"), &mnuSelectFolder);
-	AppendMenuItem(&mnuSettings, ID_INCLUDE_FOLDER, _T("Include"), &mnuSettingsInclude);
-	AppendMenuItem(&mnuSettings, ID_SETTINGS_ICON, _T("Tray icon"), &mnuSettingsIcon);
-	AppendMenuItem(&mnuSettings, ID_SETTINGS_COLORS, _T("Menu colors"), &mnuSettingsColors);
-	AppendMenuItem(&mnuSettings, ID_AUTOSTART, _T("Autostart"), &mnuAutostart);
+	AppendMenuItem(&mnuSettings, ID_SELECT_FOLDER, L"Select folder", &mnuSelectFolder);
+	AppendMenuItem(&mnuSettings, ID_INCLUDE_FOLDER, L"Include", &mnuSettingsInclude);
+	AppendMenuItem(&mnuSettings, ID_SETTINGS_ICON, L"Tray icon", &mnuSettingsIcon);
+	AppendMenuItem(&mnuSettings, ID_SETTINGS_COLORS, L"Menu colors", &mnuSettingsColors);
+	AppendMenuItem(&mnuSettings, ID_AUTOSTART, L"Autostart", &mnuAutostart);
 	AppendMenuItem(&mnuSettings);
-	AppendMenuItem(&mnuSettings, ID_CREATE_SHORTCUT, _T("Create shortcut..."));
-	AppendMenuItem(&mnuSettings, ID_DEFINE_HOTKEY, _T("Define hotkey..."));
-	AppendMenuItem(&mnuSettings, ID_EXPORT_SETTINGS, _T("Export settings..."));
+	AppendMenuItem(&mnuSettings, ID_CREATE_SHORTCUT, L"Create shortcut...");
+	AppendMenuItem(&mnuSettings, ID_DEFINE_HOTKEY, L"Define hotkey...");
+	AppendMenuItem(&mnuSettings, ID_EXPORT_SETTINGS, L"Export settings...");
 	AppendMenuItem(&mnuSettings);
-	AppendMenuItem(&mnuSettings, ID_SETTINGS_LOCALIZE, m_bLocalizedNames ? _T("Localized names \u2714") : _T("Localized names"));
-	AppendMenuItem(&mnuSettings, ID_SETTINGS_FOLDF, m_bFoldersFirst ? _T("Folders first \u2714") : _T("Folders first"));
-	AppendMenuItem(&mnuSettings, ID_SETTINGS_CLICK, m_bHoverToOpen ? _T("Hover to open \u2714") : _T("Hover to open"));
-	AppendMenuItem(&mnuSettings, ID_SETTINGS_LEFTMOST, m_bOpenLeftmost ? _T("Open leftmost \u2714") : _T("Open leftmost"));
+	AppendMenuItem(&mnuSettings, ID_SETTINGS_LOCALIZE, m_bLocalizedNames ? L"Localized names \u2714" : L"Localized names");
+	AppendMenuItem(&mnuSettings, ID_SETTINGS_FOLDF, m_bFoldersFirst ? L"Folders first \u2714" : L"Folders first");
+	AppendMenuItem(&mnuSettings, ID_SETTINGS_CLICK, m_bHoverToOpen ? L"Hover to open \u2714" : L"Hover to open");
+	AppendMenuItem(&mnuSettings, ID_SETTINGS_LEFTMOST, m_bOpenLeftmost ? L"Open leftmost \u2714" : L"Open leftmost");
 
 	// Submenü "About"
 	CMenu mnuAbout;
 	mnuAbout.CreatePopupMenu();
 
-	AppendMenuItem(&mnuAbout, ID_ABOUT_TITLE, _T("TrayMenu"));
-	AppendMenuItem(&mnuAbout, ID_ABOUT_VERSION, _T("Version 1.3"));
-	AppendMenuItem(&mnuAbout, ID_ABOUT_WEBSITE, _T("Go to website"));
+	AppendMenuItem(&mnuAbout, ID_ABOUT_TITLE, L"TrayMenu");
+	AppendMenuItem(&mnuAbout, ID_ABOUT_VERSION, L"Version 1.3");
+	AppendMenuItem(&mnuAbout, ID_ABOUT_WEBSITE, L"Go to website");
 
 	mnuAbout.SetDefaultItem(ID_ABOUT_TITLE);
 	mnuAbout.EnableMenuItem(ID_ABOUT_TITLE, MF_DISABLED);
@@ -690,13 +690,13 @@ void CTrayMenuDlg::OpenContextMenu()
 	CMenu mnuContextMenu;
 	mnuContextMenu.CreatePopupMenu();
 
-	AppendMenuItem(&mnuContextMenu, ID_OPEN_FOLDER, _T("Explore"));
-	AppendMenuItem(&mnuContextMenu, ID_RELOAD, _T("Reload"));
-	AppendMenuItem(&mnuContextMenu, ID_SETTINGS, _T("Settings"), &mnuSettings);
-	AppendMenuItem(&mnuContextMenu, ID_ABOUT, _T("About"), &mnuAbout);
-	AppendMenuItem(&mnuContextMenu, ID_EXIT, _T("Exit"));
+	AppendMenuItem(&mnuContextMenu, ID_OPEN_FOLDER, L"Explore");
+	AppendMenuItem(&mnuContextMenu, ID_RELOAD, L"Reload");
+	AppendMenuItem(&mnuContextMenu, ID_SETTINGS, L"Settings", &mnuSettings);
+	AppendMenuItem(&mnuContextMenu, ID_ABOUT, L"About", &mnuAbout);
+	AppendMenuItem(&mnuContextMenu, ID_EXIT, L"Exit");
 	AppendMenuItem(&mnuContextMenu);
-	AppendMenuItem(&mnuContextMenu, ID_CLOSE, _T("Close"));
+	AppendMenuItem(&mnuContextMenu, ID_CLOSE, L"Close");
 
 	CPoint ptMenuPos;
 	GetCursorPos(&ptMenuPos);
@@ -894,7 +894,7 @@ void CTrayMenuDlg::OpenContextMenu()
 
 BOOL CTrayMenuDlg::ReloadMenu()
 {
-	UpdateTrayIcon(m_hIconBusy, _T("Loading..."));
+	UpdateTrayIcon(m_hIconBusy, L"Loading...");
 
 	if (m_bIsReady)
 	{
@@ -928,7 +928,7 @@ BOOL CTrayMenuDlg::ReadFolder()
 		if (EnabledSystemFolder(CSIDL_DESKTOP)) bResult &= AddSystemFolder(CSIDL_DESKTOP, TRUE);
 		if (EnabledSystemFolder(CSIDL_COMMON_DESKTOPDIRECTORY)) bResult &= AddSystemFolder(CSIDL_COMMON_DESKTOPDIRECTORY, TRUE, CSIDL_DESKTOP);
 	}
-			
+
 	if (m_bIncludeStartmenu)
 	{
 		if (EnabledSystemFolder(CSIDL_STARTMENU)) bResult &= AddSystemFolder(CSIDL_STARTMENU);
@@ -984,6 +984,9 @@ BOOL CTrayMenuDlg::AddPath(CEntry* pEntry, CString strFolder, CString strPattern
 			}
 			else if (!(data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)) // gefundener Eintrag ist eine Datei (nicht versteckt)
 			{
+				if (CString(data.cFileName).CompareNoCase(L"traymenu.ini") == 0)
+					continue;
+
 				CEntry* pNewEntry = new CEntry;
 				pNewEntry->uMenuID = m_nCurrentMenuID;
 				pNewEntry->eEntryType = EntryType::FILE;
@@ -993,13 +996,13 @@ BOOL CTrayMenuDlg::AddPath(CEntry* pEntry, CString strFolder, CString strPattern
 				pNewEntry->bMenuStyleOwnerDraw = m_menuStyleController.bOwnerDraw;
 
 				// Datei-Verknüpfungen (*.lnk)
-				if (pNewEntry->strDisplayName.Right(4).CompareNoCase(_T(".lnk")) == 0)
+				if (pNewEntry->strDisplayName.Right(4).CompareNoCase(L".lnk") == 0)
 				{
 					// Dateiendung ".lnk" entfernen
 					pNewEntry->strDisplayName = pNewEntry->strDisplayName.Left(pNewEntry->strDisplayName.GetLength() - 4);
 
 					// target*.lnk auflösen
-					if (pNewEntry->strName.Left(6).CompareNoCase(_T("target")) == 0)
+					if (pNewEntry->strName.Left(6).CompareNoCase(L"target") == 0)
 					{
 						WCHAR szLinkPath[MAX_PATH];
 						HRESULT hr = ResolveLnk(m_hWnd, CT2A(strPath), szLinkPath, MAX_PATH);
@@ -1016,7 +1019,7 @@ BOOL CTrayMenuDlg::AddPath(CEntry* pEntry, CString strFolder, CString strPattern
 					}
 				}
 				// URL-Verknüpfungen (*.url)
-				else if (pNewEntry->strDisplayName.Right(4).CompareNoCase(_T(".url")) == 0)
+				else if (pNewEntry->strDisplayName.Right(4).CompareNoCase(L".url") == 0)
 				{
 					// Dateiendung ".url" entfernen
 					pNewEntry->strDisplayName = pNewEntry->strDisplayName.Left(pNewEntry->strDisplayName.GetLength() - 4);
@@ -1029,7 +1032,7 @@ BOOL CTrayMenuDlg::AddPath(CEntry* pEntry, CString strFolder, CString strPattern
 					int n = 2;
 					do
 					{
-						strDisplayNameNew.Format(_T("%s (%d)"), (LPCTSTR)pNewEntry->strDisplayName, n++);
+						strDisplayNameNew.Format(L"%s (%d)", (LPCTSTR)pNewEntry->strDisplayName, n++);
 					} while (pEntry->FindChild(strDisplayNameNew, EntryType::FILE) != NULL);
 					pNewEntry->strDisplayName = strDisplayNameNew;
 				}
@@ -1061,8 +1064,8 @@ BOOL CTrayMenuDlg::AddSystemFolder(int csidl, BOOL bAddFolder, int csidlMerge)
 		if (bAddFolder)
 		{
 			CString strFolder = path;
-			CString strPattern = _T("*");
-			int nPos = strFolder.ReverseFind(_T('\\'));
+			CString strPattern = L"*";
+			int nPos = strFolder.ReverseFind(L'\\');
 			if (nPos > 0 && nPos < strFolder.GetLength())
 			{
 				strPattern = strFolder.Mid(nPos + 1);
@@ -1073,7 +1076,7 @@ BOOL CTrayMenuDlg::AddSystemFolder(int csidl, BOOL bAddFolder, int csidlMerge)
 			{
 				CString strMergePath = path;
 				CString strMergeFolder;
-				int nPos = strMergePath.ReverseFind(_T('\\'));
+				int nPos = strMergePath.ReverseFind(L'\\');
 				if (nPos > 0 && nPos < strMergePath.GetLength())
 				{
 					strMergeFolder = strMergePath.Mid(nPos + 1);
@@ -1103,7 +1106,7 @@ BOOL CTrayMenuDlg::CreateMenu()
 	if (pmnuSubMenu != NULL)
 	{
 		AppendMenuItem(pmnuSubMenu);
-		AppendMenuItem(pmnuSubMenu, ID_CLOSE, _T("Close"), NULL, TRUE);
+		AppendMenuItem(pmnuSubMenu, ID_CLOSE, L"Close", NULL, TRUE);
 	}
 
 	return bResult;
@@ -1117,39 +1120,59 @@ BOOL CTrayMenuDlg::AddItem(CEntry* pEntry, CMenu* pmnuParent)
 		CMenu* pmnuSubMenu = &pEntry->menu;
 
 		// Für die Kind-Elemente Unterverzeichnisse erzeugen (rekursiver Aufruf)
-		vector<CEntry*>::iterator it;
-		if (m_bFoldersFirst)
+		int iGroup = 0, iGroupMax = 0;
+		do
 		{
-			BOOL bShowSeparator = FALSE;
-			for (it = pEntry->children.begin(); it != pEntry->children.end(); it++)
+			vector<CEntry*>::iterator it;
+			if (m_bFoldersFirst)
 			{
-				if ((*it)->eEntryType == EntryType::DIR && (*it)->children.size() > 0)
+				BOOL bShowSeparator = FALSE;
+				for (it = pEntry->children.begin(); it != pEntry->children.end(); it++)
 				{
-					bShowSeparator = TRUE;
-					AddItem(*it, pmnuSubMenu);
-				}
-			}
-			for (it = pEntry->children.begin(); it != pEntry->children.end(); it++)
-			{
-				if ((*it)->eEntryType != EntryType::DIR)
-				{
-					if (bShowSeparator)
+					if ((*it)->eEntryType == EntryType::DIR && (*it)->children.size() > 0)
 					{
-						AppendMenuItem(pmnuSubMenu);
-						bShowSeparator = FALSE;
+						iGroupMax = max(iGroupMax, (*it)->iGroup);
+						if (iGroup == (*it)->iGroup)
+						{
+							bShowSeparator = (iGroup == 0);
+							AddItem(*it, pmnuSubMenu);
+						}
 					}
-					AddItem(*it, pmnuSubMenu);
+				}
+				for (it = pEntry->children.begin(); it != pEntry->children.end(); it++)
+				{
+					if ((*it)->eEntryType != EntryType::DIR)
+					{
+						iGroupMax = max(iGroupMax, (*it)->iGroup);
+						if (iGroup == (*it)->iGroup)
+						{
+							if (bShowSeparator)
+							{
+								AppendMenuItem(pmnuSubMenu); // Separator
+								bShowSeparator = FALSE;
+							}
+							AddItem(*it, pmnuSubMenu);
+						}
+					}
 				}
 			}
-		}
-		else
-		{
-			for (it = pEntry->children.begin(); it != pEntry->children.end(); it++)
+			else
 			{
-				if ((*it)->eEntryType != EntryType::DIR || (*it)->children.size() > 0)
-					AddItem(*it, pmnuSubMenu);
+				for (it = pEntry->children.begin(); it != pEntry->children.end(); it++)
+				{
+					if ((*it)->eEntryType != EntryType::DIR || (*it)->children.size() > 0)
+					{
+						iGroupMax = max(iGroupMax, (*it)->iGroup);
+						if (iGroup == (*it)->iGroup)
+						{
+							AddItem(*it, pmnuSubMenu);
+						}
+					}
+				}
 			}
+			if (iGroup < iGroupMax) AppendMenuItem(pmnuSubMenu); // Separator
 		}
+		while (iGroup++ < iGroupMax);
 		AppendMenuItem(pmnuParent, pEntry->uMenuID, pEntry->GetMenuString(), pmnuSubMenu);
 	}
 	else // Datei: Menü-Item erzeugen
@@ -1265,10 +1288,10 @@ void CTrayMenuDlg::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpdis)
 
 				if (pItemData->eItemType == ItemType::POPUP)
 				{
-					//pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, _T(">"));
-					pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, _T("\u276F")); // ❯
-					//pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, _T("\u2BC8")); // ⯈
-					//pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, _T("\u1433")); // ᐳ
+					//pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, L">");
+					pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, L"\u276F"); // ❯
+					//pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, L"\u2BC8"); // ⯈
+					//pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, L"\u1433"); // ᐳ
 				}
 			}
 		}
@@ -1731,17 +1754,17 @@ CString CTrayMenuDlg::GetKnownFolderName(int csidl)
 
 void CTrayMenuDlg::BrowseToWebsite()
 {
-	ShellExecute(m_hWnd, _T("open"), _T("https://www.stefanbion.de/traymenu/"), NULL, NULL, SW_SHOWNORMAL);
+	ShellExecute(m_hWnd, L"open", L"https://www.stefanbion.de/traymenu/", NULL, NULL, SW_SHOWNORMAL);
 }
 
 void CTrayMenuDlg::ExploreFolder(CString strPath)
 {
-	ShellExecute(m_hWnd, _T("explore"), strPath, NULL, NULL, SW_SHOWNORMAL);
+	ShellExecute(m_hWnd, L"explore", strPath, NULL, NULL, SW_SHOWNORMAL);
 }
 
 void CTrayMenuDlg::OpenPath(CString strPath)
 {
-	ShellExecute(m_hWnd, _T("open"), strPath, NULL, NULL, SW_SHOWNORMAL);
+	ShellExecute(m_hWnd, L"open", strPath, NULL, NULL, SW_SHOWNORMAL);
 }
 
 BOOL CTrayMenuDlg::BrowseFolder()
@@ -1762,26 +1785,26 @@ BOOL CTrayMenuDlg::BrowseFolder()
 CString CTrayMenuDlg::FindNextProfile(DWORD& dwIndex)
 {
 	CRegKey keyProfiles;
-	LRESULT res = keyProfiles.Open(HKEY_CURRENT_USER, _T("SOFTWARE\\Stefan Bion\\TrayMenu\\Folders"), KEY_READ);
+	LRESULT res = keyProfiles.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Stefan Bion\\TrayMenu\\Folders", KEY_READ);
 	while (res == ERROR_SUCCESS)
 	{
 		CString strProfile;
 		res = RegEnumKey(keyProfiles, dwIndex++, strProfile.GetBuffer(MAX_PATH), MAX_PATH);
 		strProfile.ReleaseBuffer();
-		strProfile.Replace(_T('/'), _T('\\'));
+		strProfile.Replace(L'/', L'\\');
 		return strProfile;
 	}
 	keyProfiles.Close();
-	return _T("");
+	return L"";
 }
 
 BOOL CTrayMenuDlg::RemoveProfile(CString strFolderName)
 {
 	strFolderName = strFolderName.Mid(7); // "Forget " am Anfang entfernen
-	strFolderName.Replace(_T('\\'), _T('/'));
+	strFolderName.Replace(L'\\', L'/');
 
 	CRegKey keyProfiles;
-	LRESULT res = keyProfiles.Open(HKEY_CURRENT_USER, _T("SOFTWARE\\Stefan Bion\\TrayMenu\\Folders"), KEY_ALL_ACCESS);
+	LRESULT res = keyProfiles.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Stefan Bion\\TrayMenu\\Folders", KEY_ALL_ACCESS);
 	if (res == ERROR_SUCCESS)
 	{
 		res = keyProfiles.DeleteSubKey(strFolderName);
@@ -1793,7 +1816,7 @@ BOOL CTrayMenuDlg::RemoveProfile(CString strFolderName)
 BOOL CTrayMenuDlg::FindInAutostart(CString strFolder, BOOL bDeleteValue)
 {
 	CRegKey keyAutostart;
-	LRESULT res = keyAutostart.Open(HKEY_CURRENT_USER, _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"), 
+	LRESULT res = keyAutostart.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
 		bDeleteValue ? KEY_ALL_ACCESS : KEY_READ);
 	DWORD dwIndex = 0;
 	while (res  == ERROR_SUCCESS)
@@ -1802,14 +1825,14 @@ BOOL CTrayMenuDlg::FindInAutostart(CString strFolder, BOOL bDeleteValue)
 		DWORD dwLengthValueName = MAX_PATH;
 		res = RegEnumValue(keyAutostart, dwIndex++, strValueName.GetBuffer(MAX_PATH), &dwLengthValueName, NULL, NULL, NULL, NULL);
 		strValueName.ReleaseBuffer();
-		if (strValueName.Left(10) == _T("TrayMenu #"))
+		if (strValueName.Left(10) == L"TrayMenu #")
 		{
 			CString strValue;
 			DWORD dwLengthValue = MAX_PATH;
 			res = keyAutostart.QueryStringValue(strValueName, strValue.GetBuffer(MAX_PATH), &dwLengthValue);
 			if (res == ERROR_SUCCESS)
 			{
-				if (strValue.Find(_T("\\TrayMenu.exe\" \"") + strFolder + _T("\"")) != -1)
+				if (strValue.Find(L"\\TrayMenu.exe\" \"" + strFolder + L"\"") != -1)
 				{
 					if (bDeleteValue) keyAutostart.DeleteValue(strValueName);
 					keyAutostart.Close();
@@ -1825,14 +1848,14 @@ BOOL CTrayMenuDlg::FindInAutostart(CString strFolder, BOOL bDeleteValue)
 CString CTrayMenuDlg::FindNextAutostartFolder(DWORD& dwIndex)
 {
 	CRegKey keyAutostart;
-	LRESULT res = keyAutostart.Open(HKEY_CURRENT_USER, _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"), KEY_READ);
+	LRESULT res = keyAutostart.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", KEY_READ);
 	while (res == ERROR_SUCCESS)
 	{
 		CString strValueName;
 		DWORD dwLengthValueName = MAX_PATH;
 		res = RegEnumValue(keyAutostart, dwIndex++, strValueName.GetBuffer(MAX_PATH), &dwLengthValueName, NULL, NULL, NULL, NULL);
 		strValueName.ReleaseBuffer();
-		if (strValueName.Left(10) == _T("TrayMenu #"))
+		if (strValueName.Left(10) == L"TrayMenu #")
 		{
 			CString strValue;
 			DWORD dwLengthValue = MAX_PATH;
@@ -1840,7 +1863,7 @@ CString CTrayMenuDlg::FindNextAutostartFolder(DWORD& dwIndex)
 			strValue.ReleaseBuffer();
 			if (res == ERROR_SUCCESS)
 			{
-				CString strSearch = _T("\\TrayMenu.exe\" \"");
+				CString strSearch = L"\\TrayMenu.exe\" \"";
 				int nPos = strValue.Find(strSearch);
 				if (nPos != -1)
 				{
@@ -1853,7 +1876,7 @@ CString CTrayMenuDlg::FindNextAutostartFolder(DWORD& dwIndex)
 		}
 	}
 	keyAutostart.Close();
-	return _T("");
+	return L"";
 }
 
 BOOL CTrayMenuDlg::AddToAutostart(CString strFolder)
@@ -1863,15 +1886,15 @@ BOOL CTrayMenuDlg::AddToAutostart(CString strFolder)
 	strAppPath.ReleaseBuffer();
 
 	CString strAutostartCommand;
-	strAutostartCommand.Format(_T("\"%s\" \"%s\""), (LPCTSTR)strAppPath, (LPCTSTR)strFolder);
+	strAutostartCommand.Format(L"\"%s\" \"%s\"", (LPCTSTR)strAppPath, (LPCTSTR)strFolder);
 
 	int mEntryID = 1;
 	CRegKey keyAutostart;
-	LRESULT res = keyAutostart.Open(HKEY_CURRENT_USER, _T("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"), KEY_ALL_ACCESS);
+	LRESULT res = keyAutostart.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", KEY_ALL_ACCESS);
 	while (res == ERROR_SUCCESS)
 	{
 		CString strValueName;
-		strValueName.Format(_T("TrayMenu #%d"), mEntryID++);
+		strValueName.Format(L"TrayMenu #%d", mEntryID++);
 		CString strValue;
 		DWORD dwLengthValue = MAX_PATH;
 		res = keyAutostart.QueryStringValue(strValueName, strValue.GetBuffer(MAX_PATH), &dwLengthValue);
@@ -1897,8 +1920,8 @@ BOOL CTrayMenuDlg::CreateShortcut()
 	CString strDesktopPath(szDesktopPath);
 	CoTaskMemFree(szDesktopPath);
 
-	CString strLinkPath = strDesktopPath + _T("\\") + m_entryRoot.strDisplayName + _T(".lnk");
-	CFileDialog dlg(FALSE, _T(".lnk"), strLinkPath, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("Shortcut (*.lnk)|*.lnk||"));
+	CString strLinkPath = strDesktopPath + L"\\" + m_entryRoot.strDisplayName + L".lnk";
+	CFileDialog dlg(FALSE, L".lnk", strLinkPath, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"Shortcut (*.lnk)|*.lnk||");
 	if (dlg.DoModal() != IDOK)
 		return FALSE;
 
@@ -1909,8 +1932,8 @@ BOOL CTrayMenuDlg::CreateShortcut()
 	HRESULT hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
 	if (SUCCEEDED(hres))
 	{
-		psl->SetPath(_T("\"") + strAppPath + _T("\""));
-		psl->SetArguments(_T("\"") + m_strFolder + _T("\""));
+		psl->SetPath(L"\"" + strAppPath + L"\"");
+		psl->SetArguments(L"\"" + m_strFolder + L"\"");
 		psl->SetDescription(m_strFolder);
 		psl->SetIconLocation(strAppPath, m_nIconIndex);
 
@@ -1963,8 +1986,8 @@ void CTrayMenuDlg::ShowDialogHotkey()
 {
 	m_DlgMode = DlgMode::HOTKEY;
 	m_bIsVisible = TRUE;
-	SetWindowText(_T("Define hotkey"));
-	m_stcDlgMessage.SetWindowText(_T("Please press any combination of keys:"));
+	SetWindowText(L"Define hotkey");
+	m_stcDlgMessage.SetWindowText(L"Please press any combination of keys:");
 	m_hotKeyCtrl.SetHotKey((WORD&)m_uHotkeyKeyCode, (WORD&)m_uHotkeyModifiers);
 	m_hotKeyCtrl.SetFocus();
 	CenterWindow();
@@ -2010,19 +2033,19 @@ BOOL CTrayMenuDlg::ShellExecuteWait(HWND hwnd, LPCWSTR lpOperation, LPCWSTR lpFi
 
 BOOL CTrayMenuDlg::ExportSettings()
 {
-	CFileDialog dlg(FALSE, _T(".reg"), _T("TrayMenuSettings.reg"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("Registration files (*.reg)|*.reg||"));
+	CFileDialog dlg(FALSE, L".reg", L"TrayMenuSettings.reg", OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"Registration files (*.reg)|*.reg||");
 	if (dlg.DoModal() != IDOK)
 		return FALSE;
 
 	BOOL bResult = FALSE;
 
-	CString strRegExePath = Expand(_T("%windir%\\system32\\reg.exe"));
+	CString strRegExePath = Expand(L"%windir%\\system32\\reg.exe");
 
 	FILE* pRegFile = NULL;
 	FILE* pTmpFile = NULL;
 
 	CString strRegFile = dlg.GetPathName();
-	CString strTmpFile = dlg.GetPathName() + _T(".tmp");
+	CString strTmpFile = dlg.GetPathName() + L".tmp";
 
 	do
 	{
@@ -2032,17 +2055,17 @@ BOOL CTrayMenuDlg::ExportSettings()
 		if (PathFileExists(strRegFile)) break;
 		if (PathFileExists(strTmpFile)) break;
 
-		CString strArgsProfile = _T(" export \"HKCU\\SOFTWARE\\Stefan Bion\\TrayMenu\" \"") + strRegFile + _T("\" /y");
-		CString strArgsAutorun = _T(" export \"HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" \"") + strTmpFile + _T("\" /y");
+		CString strArgsProfile = L" export \"HKCU\\SOFTWARE\\Stefan Bion\\TrayMenu\" \"" + strRegFile + L"\" /y";
+		CString strArgsAutorun = L" export \"HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" \"" + strTmpFile + L"\" /y";
 
-		if (!ShellExecuteWait(m_hWnd, _T("open"), strRegExePath, strArgsProfile, NULL, SW_HIDE)) break;
-		if (!ShellExecuteWait(m_hWnd, _T("open"), strRegExePath, strArgsAutorun, NULL, SW_HIDE)) break;
+		if (!ShellExecuteWait(m_hWnd, L"open", strRegExePath, strArgsProfile, NULL, SW_HIDE)) break;
+		if (!ShellExecuteWait(m_hWnd, L"open", strRegExePath, strArgsAutorun, NULL, SW_HIDE)) break;
 
 		if (!PathFileExists(strRegFile)) break;
 		if (!PathFileExists(strTmpFile)) break;
 
-		if (_wfopen_s(&pRegFile, strRegFile, _T("at, ccs=UNICODE"))) break;
-		if (_wfopen_s(&pTmpFile, strTmpFile, _T("rt, ccs=UNICODE"))) break;
+		if (_wfopen_s(&pRegFile, strRegFile, L"at, ccs=UNICODE")) break;
+		if (_wfopen_s(&pTmpFile, strTmpFile, L"rt, ccs=UNICODE")) break;
 
 		CString strLine;
 		try
@@ -2052,8 +2075,8 @@ BOOL CTrayMenuDlg::ExportSettings()
 
 			while (fileTmp.ReadString(strLine))
 			{
-				if (strLine.Left(1) == _T('[') || strLine.Left(11) == _T("\"TrayMenu #"))
-					fileReg.WriteString(strLine + _T("\n"));
+				if (strLine.Left(1) == L'[' || strLine.Left(11) == L"\"TrayMenu #")
+					fileReg.WriteString(strLine + L"\n");
 			}
 			bResult = TRUE;
 		}
@@ -2062,7 +2085,6 @@ BOOL CTrayMenuDlg::ExportSettings()
 			e->ReportError();
 			break;
 		}
-
 	}
 	while (FALSE);
 
@@ -2070,7 +2092,7 @@ BOOL CTrayMenuDlg::ExportSettings()
 	if (pTmpFile) fclose(pTmpFile);
 	DeleteFile(strTmpFile);
 
-	if (!bResult) AfxMessageBox(_T("Export failed."));
+	if (!bResult) AfxMessageBox(L"Export failed.");
 
 	return bResult;
 }

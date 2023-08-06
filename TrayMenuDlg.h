@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <locale>
 #include <algorithm> // std::sort
 #include <iostream>
@@ -38,6 +39,8 @@ class CEntry
 public:
 	CEntry()
 	{
+		iGroup = 0;
+		iSort = 0;
 		eEntryType = EntryType::INIT;
 		uMenuID = 0;
 		hIcon = 0;
@@ -79,16 +82,24 @@ public:
 	{
 		CString strMenuString = strDisplayName;
 		if (!bMenuStyleOwnerDraw)
-			strMenuString.Replace(_T("&"), _T("&&"));
+			strMenuString.Replace(L"&", L"&&");
 		return strMenuString;
 	}
 
 	void SortChildren()
 	{
+		// Sortierstring setzen für Gruppierung entsprechend der Angaben in traymenu.ini
+		map<CString, int> mapGroups;
+		ReadFolderInfo(mapGroups);
+
+		for (vector<CEntry*>::iterator it = children.begin(); it != children.end(); it++)
+		{
+			(*it)->SetSortName(mapGroups);
+		}
+
 		// Zuerst die eigenen Kinder sortieren
 		if (children.size() > 1) // Sortieren macht natürlich erst ab 2 Kind-Elementen Sinn
 		{
-			// children.sort(CompareChildren); // gilt für list
 			sort(children.begin(), children.end(), CompareChildren); // gilt für vector
 		}
 
@@ -99,6 +110,50 @@ public:
 		}
 	}
 
+	BOOL ReadFolderInfo(map<CString, int>& mapGroups)
+	{
+		FILE* pFile = NULL;
+		if (_wfopen_s(&pFile, strPath + L"\\traymenu.ini", L"rt, ccs=UTF-8")) return FALSE;
+		CStdioFile file(pFile);
+		CString strLine;
+		int iGroup = 0, iSort = 0;
+		enum class Section { NONE, GROUP };
+		Section section = Section::NONE;
+		while (file.ReadString(strLine))
+		{
+			if (strLine.IsEmpty() || strLine.Left(1) == L'#') continue;
+			if (strLine.CompareNoCase(L"[GROUP]") == 0)
+			{
+				section = Section::GROUP;
+				iGroup++; iSort = 0;
+			}
+			else if (section == Section::GROUP)
+			{
+				mapGroups[strLine] = (iGroup << 16) | iSort;
+				iSort++;
+			}
+		}
+		fclose(pFile);
+		return TRUE;
+	}
+
+	void SetSortName(map<CString, int>& mapGroups)
+	{
+		iGroup = 0;
+		iSort = 0;
+
+		if (mapGroups.find(strDisplayName) != mapGroups.end())
+		{
+			int iGroupSort = mapGroups[strDisplayName];
+			iGroup = iGroupSort >> 16;
+			iSort = iGroupSort & 0xFFFF;
+		}
+
+		strSortName.Empty();
+		strSortName.Format(L"%03d%03d", iGroup, iSort);
+		strSortName += strDisplayName;
+	}
+
 	static bool CompareChildren(CEntry* a, CEntry* b)
 	{
 		return *a < *b;
@@ -106,7 +161,7 @@ public:
 
 	bool operator < (const CEntry& a) const
 	{
-		return CSTR_LESS_THAN == CompareString(LOCALE_USER_DEFAULT, 0, strDisplayName, -1, a.strDisplayName, -1);
+		return CSTR_LESS_THAN == CompareString(LOCALE_USER_DEFAULT, 0, strSortName, -1, a.strSortName, -1);
 	}
 
 	vector<CEntry*> children;
@@ -114,6 +169,9 @@ public:
 	CString strPath;
 	CString strName;
 	CString strDisplayName;
+	CString strSortName;
+	int iGroup;
+	int iSort;
 
 	// Infos aus der .lnk-Datei:
 	CString strLinkPath;
@@ -325,7 +383,7 @@ protected:
 	void OpenContextMenu();
 	BOOL ReloadMenu();
 	BOOL ReadFolder();
-	BOOL AddPath(CEntry *pEntry, CString strFolder, CString strPattern = _T("*"), CString strMergeFolder = _T(""));
+	BOOL AddPath(CEntry *pEntry, CString strFolder, CString strPattern = L"*", CString strMergeFolder = L"");
 	BOOL EnabledSystemFolder(int csidl);
 	BOOL AddSystemFolder(int csidl, BOOL bAddFolder = FALSE, int csidlMerge = -1);
 	BOOL CreateMenu();

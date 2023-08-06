@@ -63,7 +63,7 @@ BOOL CTrayMenuApp::InitInstance()
 	// Ändern Sie den Registrierungsschlüssel, unter dem Ihre Einstellungen gespeichert sind.
 	// TODO: Ändern Sie diese Zeichenfolge entsprechend,
 	// z.B. zum Namen Ihrer Firma oder Organisation.
-	SetRegistryKey(_T("Stefan Bion"));
+	SetRegistryKey(L"Stefan Bion");
 
 	CString strFolder;
 
@@ -82,7 +82,7 @@ BOOL CTrayMenuApp::InitInstance()
 		}
 		else
 		{
-			AfxMessageBox(_T("Error: The user's Start Menu folder wasn't found."));
+			AfxMessageBox(L"Error: The user's Start Menu folder wasn't found.");
 			return FALSE;
 		}
 	}
@@ -90,7 +90,7 @@ BOOL CTrayMenuApp::InitInstance()
 	if (!PathFileExists(strFolder))
 	{
 		CString strMessage;
-		strMessage.Format(_T("Error: The Folder \"%s\" can't be acccessed."), (LPCTSTR)strFolder);
+		strMessage.Format(L"Error: The Folder \"%s\" can't be acccessed.", (LPCTSTR)strFolder);
 		AfxMessageBox(strMessage);
 		return FALSE;
 	}

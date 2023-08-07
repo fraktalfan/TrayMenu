@@ -3,7 +3,7 @@ An alternative, freely configurable Start menu for Windows
 ## Short Description
 TrayMenu creates a hierarchical menu from the contents of any folder for quick access to applications, files, scripts, etc. The menu, which is based on the classic folder-based Start menu of earlier versions of Windows, can be accessed via an icon in the taskbar. No administrator rights are required for installation, which means that it can be used on computers with limited user rights.
 
-![01-mainmenu](https://github.com/fraktalfan/TrayMenu/assets/93649344/58c88fc5-afbb-4e6a-84de-b8494945c8a7)
+![01-mainmenu](https://github.com/fraktalfan/TrayMenu/assets/93649344/71c0736d-8f4f-49ef-8e4e-7cdb143fa6b6)
 
 ## Background
 In my opinion, the folder-based Start menu introduced with Windows 95 was ideal for clearly categorizing all installed applications and frequently used files in one central location and for quick access to them. After Microsoft unfortunately abolished this extremely practical form of the Start menu with Windows 8 and replaced it with a confusing "Start page", thank God there were tools such as "Open-Shell" that brought the classic Start menu back again. Unfortunately, its installation requires administrator rights, so it cannot be used on company computers with limited user rights, for example. There you could at least help yourself with a self-created toolbar, which behaved similarly to a Start menu, except that it could not be opened via the keyboard (Windows key or Ctrl+Esc, but only by clicking in the taskbar. Unfortunately, with the introduction of Windows 11, Microsoft also abolished this last option of creating your own selection menus. With TrayMenu, an alternative is available that doesn't quite come close to the old Start menu, but still fulfills two important criteria: 1.) Any folder contents can be displayed in the form of a hierarchically structured menu, and 2.) it does not require admin rights on the computer.
@@ -29,9 +29,17 @@ To permanently display the TrayMenu icon in the notification area of the taskbar
 ![00e-taskbar-overflow](https://github.com/fraktalfan/TrayMenu/assets/93649344/c13eb04c-c0e6-46cb-bf87-b060a7709063)
 
 ## Usage
-A normal click on the TrayMenu icon or pressing the key combination Ctrl+F1 (changeable) opens the Start menu for selecting the applications and files stored there. Initially, only a few entries are visible there, e.g. the "Programs" submenu, if it has not yet been supplemented by own entries. A click with the left mouse button on a menu item opens the file or application; a right click on a menu item (file or folder) displays the explorer context menu:
+A normal click on the TrayMenu icon or pressing the key combination Ctrl+F1 (changeable) opens the Start menu for selecting the applications and files stored there:
 
-![13-shell-context-menu](https://github.com/fraktalfan/TrayMenu/assets/93649344/d07aed47-3e80-4f82-a8b2-cf36b74dd4b3)
+![01-mainmenu](https://github.com/fraktalfan/TrayMenu/assets/93649344/71c0736d-8f4f-49ef-8e4e-7cdb143fa6b6)
+
+Initially, you may only see a few menu items, e.g. the "Programs" submenu. You can add your own menu entries via Windows Explorer:
+
+![15-explorer-vs-traymenu](https://github.com/fraktalfan/TrayMenu/assets/93649344/b6427935-015b-4bb3-b3cc-102bfed8a2d7)
+
+A click with the left mouse button on a menu item opens the file or application; a right click on a menu item (file or folder) displays the explorer context menu:
+
+![13-shell-context-menu](https://github.com/fraktalfan/TrayMenu/assets/93649344/e10c870f-9480-411c-81aa-7f072546ab95)
 
 A right-click on the TrayMenu icon opens the context menu through which various settings can be made:
 
@@ -121,6 +129,28 @@ Displays the program version and contains a link to access this website:
 
 ## Tipps
 
+### Change folder icons
+To change a folder icon, right-click the menu folder in Windows Explorer or the menu and choose "Properties > Customize > Change Icon":
+
+![17-change-folder-icon](https://github.com/fraktalfan/TrayMenu/assets/93649344/51dcb9b4-f1f2-4a1c-83bd-13feb8b211b8)
+
+If you cannot find a suitable icon there, use "Browse" to select another file, e.g. "%SystemRoot%\System32\imageres.dll". Icon files (*.ico) can also be selected.
+
+### Grouping of menu items
+By default, menu items are sorted alphabetically. Individual menu entries can be grouped by creating a text file with the name "traymenu.ini". The groups are visually separated from the other menu items by a menu separator:
+
+![14-traymenu-ini](https://github.com/fraktalfan/TrayMenu/assets/93649344/38dbe765-1215-4c23-86fc-aceccab93d00)
+
+The "traymenu.ini" file must be in the same directory or folder as the start menu shortcuts and must be saved in the Unicode character set "UTF-8". This works not only in the root directory of the Start menu, but also in every subdirectory. The "traymenu.ini" file itself is not displayed in the menu. To hide them from other applications as well, the "Hidden" attribute can be set using Windows Explorer (right-click > Properties).
+
+### Shutdown / Reboot menu items
+You can easily create menu entries for logging off, shutting down, restarting, etc. using Windows Explorer:
+
+![16-shutdown](https://github.com/fraktalfan/TrayMenu/assets/93649344/93069d95-875b-4546-8f8f-8f071032a287)
+
+1.) Create a folder called "**Shutdown**". 2.) Create the following shortcuts in it: **Log off** (Target: shutdown /l /t 0), **Shutdown** (Target: shutdown /s /t 0), **Reboot** (Target: shutdown /r /t 0), **Hibernate** (Target: shutdown /h /t 0). Optionally, you can also give the folder and the shortcuts nice icons and assign them to a separate group using a traymenu.ini entry, so that the folder is displayed at the bottom of the menu. The folder heading with the warning is simply an appropriately named shortcut to a text file.
+
+### Include additional folders
 With the help of specially named folder shortcuts, the contents of several folders can be merged in the menu. For example, the contents of the two "Programs" folders for all users (C:\ProgramData\Microsoft\Windows\Start Menu) and for your own user (C:\Users\username\AppData\Roaming\Microsoft\Windows\Start Menu) are displayed together in the "Programs" submenu. To achieve this, simply use Windows Explorer to create a shortcut to the desired target folder in the menu folder and give this shortcut a name with "target" at the beginning:
 
 ![10-explorer](https://github.com/fraktalfan/TrayMenu/assets/93649344/6d8dbcc5-8e26-4d27-9b0d-d07283febe60)
@@ -130,6 +160,10 @@ In the example above, a shortcut to the folder "C:\ProgramData\Microsoft\Windows
 To include the Windows system folders "Desktop" and "Start menu" there is the setting "Include" in the "Settings" menu since version 1.1.
 
 ## Updates
+
+### Version 1.4 (06.08.2023)
+
+* New: Ability to group menu items using configuration file "traymenu.ini".
 
 ### Version 1.3 (04.08.2023)
 

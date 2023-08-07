@@ -679,7 +679,7 @@ void CTrayMenuDlg::OpenContextMenu()
 	mnuAbout.CreatePopupMenu();
 
 	AppendMenuItem(&mnuAbout, ID_ABOUT_TITLE, L"TrayMenu");
-	AppendMenuItem(&mnuAbout, ID_ABOUT_VERSION, L"Version 1.3");
+	AppendMenuItem(&mnuAbout, ID_ABOUT_VERSION, L"Version 1.4");
 	AppendMenuItem(&mnuAbout, ID_ABOUT_WEBSITE, L"Go to website");
 
 	mnuAbout.SetDefaultItem(ID_ABOUT_TITLE);

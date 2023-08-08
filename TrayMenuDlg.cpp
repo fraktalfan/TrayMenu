@@ -982,9 +982,12 @@ BOOL CTrayMenuDlg::AddPath(CEntry* pEntry, CString strFolder, CString strPattern
 					AddPath(pNewEntry, strPath); // Verzeichnis durchsuchen (rekursiver Aufruf)
 				}
 			}
-			else if (!(data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)) // gefundener Eintrag ist eine Datei (nicht versteckt)
+			else // gefundener Eintrag ist eine Datei
 			{
-				if (CString(data.cFileName).CompareNoCase(L"traymenu.ini") == 0)
+				if (
+				//	data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN ||
+					CString(data.cFileName).CompareNoCase(L"traymenu.ini") == 0 ||
+					CString(data.cFileName).CompareNoCase(L"desktop.ini") == 0)
 					continue;
 
 				CEntry* pNewEntry = new CEntry;

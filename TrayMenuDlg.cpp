@@ -72,6 +72,8 @@ CTrayMenuDlg::CTrayMenuDlg(CString strFolder, CWnd* pParent /*=nullptr*/)
 		RGB(191, 229, 191)	// Selection - background
 	);
 
+	m_hIconFolderSelected = 0;
+
 	m_hIconBlue = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_BLUE), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 	m_hIconBlack = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_BLACK), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 	m_hIconGreen = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_GREEN), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
@@ -119,12 +121,15 @@ CTrayMenuDlg::CTrayMenuDlg(CString strFolder, CWnd* pParent /*=nullptr*/)
 	m_hIconSelected = m_hIconBlue;
 	m_nIconIndex = 0;
 	m_hIconBusy = m_hIconGrey;
-	m_strFolder = strFolder;
+	SetFolder(strFolder);
 }
 
 CTrayMenuDlg::~CTrayMenuDlg()
 {
 	DeleteData();
+
+	if (m_hIconFolderSelected != 0)
+		DestroyIcon(m_hIconFolderSelected);
 
 	if (SUCCEEDED(m_hrCoInitialize))
 		CoUninitialize();
@@ -278,6 +283,16 @@ CString CTrayMenuDlg::GetFolderName()
 		return m_strFolder.Right(m_strFolder.GetLength() - nPos - 1);
 	else
 		return L"TrayMenu";
+}
+
+void CTrayMenuDlg::SetFolder(CString strFolder)
+{
+	m_strFolder = strFolder;
+
+	if (m_hIconFolderSelected != 0 && m_hIconFolderSelected != m_hIconBlue)
+		DestroyIcon(m_hIconFolderSelected);
+
+	m_hIconFolderSelected = GetFileIcon(strFolder, m_hIconBlue);
 }
 
 CString CTrayMenuDlg::GetProfileName()
@@ -447,6 +462,7 @@ void CTrayMenuDlg::SelectIcon(DWORD dwSelection)
 	case ID_ICON_VIOLET: m_hIconSelected = m_hIconViolet; m_nIconIndex = 8; break;
 	case ID_ICON_WHITE: m_hIconSelected = m_hIconWhite; m_nIconIndex = 9; break;
 	case ID_ICON_YELLOW: m_hIconSelected = m_hIconYellow; m_nIconIndex = 10; break;
+	case ID_ICON_FOLDER_SELECTED: m_hIconSelected = m_hIconFolderSelected; m_nIconIndex = -1; break;
 	default: m_nIconIndex = 0; return;
 	}
 
@@ -616,6 +632,7 @@ void CTrayMenuDlg::OpenContextMenu()
 	AppendMenuItem(&mnuSettingsIcon, ID_ICON_BLACK, L"Black" + CString(m_hIconSelected == m_hIconBlack ? L" \u2714" : L""));
 	AppendMenuItem(&mnuSettingsIcon, ID_ICON_GREY, L"Grey" + CString(m_hIconSelected == m_hIconGrey ? L" \u2714" : L""));
 	AppendMenuItem(&mnuSettingsIcon, ID_ICON_WHITE, L"White" + CString(m_hIconSelected == m_hIconWhite ? L" \u2714" : L""));
+	AppendMenuItem(&mnuSettingsIcon, ID_ICON_FOLDER_SELECTED, L"Folder" + CString(m_hIconSelected == m_hIconFolderSelected ? L" \u2714" : L""));
 
 	// Settings-Submenü "Custom"
 	CMenu mnuSettingsCustom;
@@ -863,7 +880,7 @@ void CTrayMenuDlg::OpenContextMenu()
 				CItemData* pItemData = CItemData::Find(m_arrItemDataContextMenu, dwSelection);
 				if (pItemData && pItemData->strCaption != m_strFolder)
 				{
-					m_strFolder = pItemData->strCaption;
+					SetFolder(pItemData->strCaption);
 					LoadSettings();
 					ReloadMenu();
 				}
@@ -903,6 +920,8 @@ BOOL CTrayMenuDlg::ReloadMenu()
 	}
 
 	m_bIsReady = ReadFolder() && CreateMenu();
+	SetFolder(m_strFolder);
+	SelectIcon(m_dwMenuIdIconSelected);
 	UpdateTrayIcon(m_hIconSelected, m_entryRoot.strDisplayName);
 	return m_bIsReady;
 }
@@ -1570,6 +1589,7 @@ HICON CTrayMenuDlg::GetIconForItem(UINT itemID)
 	case ID_ICON_VIOLET: return m_hIconViolet;
 	case ID_ICON_WHITE: return m_hIconWhite;
 	case ID_ICON_YELLOW: return m_hIconYellow;
+	case ID_ICON_FOLDER_SELECTED: return m_hIconFolderSelected;
 	case ID_ABOUT: return m_hIconAbout;
 	case ID_ABOUT_TITLE: return 0;
 	case ID_ABOUT_VERSION: return 0;
@@ -1778,7 +1798,7 @@ BOOL CTrayMenuDlg::BrowseFolder()
 		CString strSelectedFolder = dlg.GetPathName();
 		if (strSelectedFolder != m_strFolder)
 		{
-			m_strFolder = strSelectedFolder;
+			SetFolder(strSelectedFolder);
 			return TRUE;
 		}
 	}
@@ -1938,7 +1958,10 @@ BOOL CTrayMenuDlg::CreateShortcut()
 		psl->SetPath(L"\"" + strAppPath + L"\"");
 		psl->SetArguments(L"\"" + m_strFolder + L"\"");
 		psl->SetDescription(m_strFolder);
-		psl->SetIconLocation(strAppPath, m_nIconIndex);
+		if (m_nIconIndex == -1)
+			psl->SetIconLocation(strAppPath, m_nIconIndex);
+		else
+			psl->SetIconLocation(m_strFolder, 0);
 
 		// Query IShellLink for the IPersistFile interface, used for saving the 
 		// shortcut in persistent storage.

@@ -314,6 +314,7 @@ protected:
 // Implementierung
 protected:
 	HICON m_hIcon;
+	HICON m_hIconFolderSelected; // Icon des ausgewählten Folders
 
 	HICON m_hIconBlue;
 	HICON m_hIconBlack;
@@ -368,6 +369,7 @@ protected:
 	virtual void OnOK();
 	virtual void OnCancel();
 	CString GetFolderName();
+	void SetFolder(CString strFolder);
 	CString GetProfileName();
 	void LoadSettings();
 	void SaveSettings();

@@ -386,6 +386,7 @@ protected:
 	BOOL ReloadMenu();
 	BOOL ReadFolder();
 	BOOL AddPath(CEntry *pEntry, CString strFolder, CString strPattern = L"*", CString strMergeFolder = L"");
+	BOOL IsReadable(CString strPath);
 	BOOL EnabledSystemFolder(int csidl);
 	BOOL AddSystemFolder(int csidl, BOOL bAddFolder = FALSE, int csidlMerge = -1);
 	BOOL CreateMenu();

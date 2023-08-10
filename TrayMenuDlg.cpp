@@ -970,10 +970,10 @@ BOOL CTrayMenuDlg::AddPath(CEntry* pEntry, CString strFolder, CString strPattern
 
 			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) // gefundener Eintrag ist ein Verzeichnis
 			{
-				if (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) // Junction (?) ignorieren
+				if (CString(data.cFileName) == "." || CString(data.cFileName) == "..")
 					continue;
 
-				if (CString(data.cFileName) == "." || CString(data.cFileName) == "..")
+				if (!IsReadable(strPath))
 					continue;
 
 				CString strDisplayName = GetLocalizedName(strPath, data.cFileName);
@@ -1072,6 +1072,17 @@ BOOL CTrayMenuDlg::AddPath(CEntry* pEntry, CString strFolder, CString strPattern
 		return TRUE;
 	}
 	return FALSE;
+}
+
+BOOL CTrayMenuDlg::IsReadable(CString strPath)
+{
+	// Test if directory is readable
+	WIN32_FIND_DATA data;
+	HANDLE hFile = FindFirstFile(strPath + L"\\*", &data);
+	if (hFile == INVALID_HANDLE_VALUE)
+		return FALSE;
+	FindClose(hFile);
+	return TRUE;
 }
 
 BOOL CTrayMenuDlg::EnabledSystemFolder(int csidl)

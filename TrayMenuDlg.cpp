@@ -970,6 +970,9 @@ BOOL CTrayMenuDlg::AddPath(CEntry* pEntry, CString strFolder, CString strPattern
 
 			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) // gefundener Eintrag ist ein Verzeichnis
 			{
+				if (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) // Junction (?) ignorieren
+					continue;
+
 				if (CString(data.cFileName) == "." || CString(data.cFileName) == "..")
 					continue;
 

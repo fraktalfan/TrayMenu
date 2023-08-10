@@ -167,6 +167,7 @@ public:
 	vector<CEntry*> children;
 	EntryType eEntryType;
 	CString strPath;
+	vector<CString> strMergedPaths;
 	CString strName;
 	CString strDisplayName;
 	CString strSortName;
@@ -195,10 +196,11 @@ class CItemData
 public:
 	CItemData(CMenu* a_pMenu, UINT a_uMenuID, LPCWSTR a_szCaption, ItemType a_eItemType)
 	{
+		eItemType = a_eItemType;
 		pMenu = a_pMenu;
 		uMenuID = a_uMenuID;
+		hIcon = 0;
 		strCaption = a_szCaption;
-		eItemType = a_eItemType;
 	}
 
 	static CItemData* Find(vector<CItemData*>& arrItemData, UINT a_uMenuID)
@@ -211,11 +213,14 @@ public:
 		return NULL;
 	}
 
-	static void Delete(vector<CItemData*>& arrItemData)
+	static void Delete(vector<CItemData*>& arrItemData, BOOL bDestroyIcon = FALSE, HICON hExcept = 0)
 	{
 		while (arrItemData.size() > 0)
 		{
-			delete arrItemData.back();
+			CItemData* pItemData = arrItemData.back();
+			if (bDestroyIcon && pItemData->hIcon != hExcept)
+				DestroyIcon(pItemData->hIcon);
+			delete pItemData;
 			arrItemData.pop_back();
 		}
 
@@ -398,7 +403,8 @@ protected:
 	afx_msg void OnMenuRButtonUp(UINT uMenuPos, CMenu* pMenu);
 	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSubMenu);
-	bool OpenShellContextMenu(const CString& strPath, int xPos, int yPos, HWND hwndParent);
+	bool OpenShellContextMenu(CEntry* pEntry, CPoint point);
+	bool OpenShellContextMenu(const CString& strPath, CPoint point);
 	afx_msg void OnHotKey(UINT id, UINT fsModifiers, UINT vk);
 	CString GetHotkeyName();
 	void ShowDialogHotkey();
@@ -435,6 +441,7 @@ private:
 	vector<CEntry*> m_arrEntries; // enthält die Daten für alle Einträge des Hauptmenüs in hierarchischer Form
 	vector<CItemData*> m_arrItemDataMainMenu; // enthält Item-Daten zum Zeichnen des Hauptmenüs
 	vector<CItemData*> m_arrItemDataContextMenu; // enthält Item-Daten zum Zeichnen des Kontextmenüs
+	vector<CItemData*> m_arrItemDataShellMenu; // enthält Item-Daten zum Zeichnen des Item-Shell-Kontextmenüs
 	vector<CString> m_arrAutostartFolders;
 	UINT m_nCurrentMenuID;
 	HICON m_hIconSelected;

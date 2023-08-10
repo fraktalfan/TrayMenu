@@ -105,13 +105,15 @@
 #define ID_SETTINGS_LEFTMOST            32968
 #define ID_EXPORT_SETTINGS              32969
 #define ID_ICON_FOLDER_SELECTED         32970
+#define ID_SHELL_MENU                   32971
+#define ID_SHELL_MENU_MAX               32980
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        171
-#define _APS_NEXT_COMMAND_VALUE         32971
+#define _APS_NEXT_COMMAND_VALUE         32981
 #define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

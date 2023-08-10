@@ -984,6 +984,7 @@ BOOL CTrayMenuDlg::AddPath(CEntry* pEntry, CString strFolder, CString strPattern
 				{
 					// Ein Verzeichnis-Element mit diesem Namen existiert schon (nach .lnk-Auflösung):
 					// Einträge aus diesem Verzeichnis dem bestehenden Verzeichnis-Element hinzufügen.
+					pEntryExistingChild->strMergedPaths.push_back(strPath);
 					AddPath(pEntryExistingChild, strPath); // Verzeichnis durchsuchen (rekursiver Aufruf)
 				}
 				else
@@ -1271,6 +1272,8 @@ void CTrayMenuDlg::AppendMenuItem(CMenu* pMenu, UINT uMenuID, LPCWSTR szCaption,
 
 	if (uMenuID >= MENU_ID_START || bAddToItemDataMainMenu)
 		m_arrItemDataMainMenu.push_back(new CItemData(pMenu, uMenuID, szCaption, eItemType));
+	else if (uMenuID >= ID_SHELL_MENU && uMenuID <= ID_SHELL_MENU_MAX)
+		m_arrItemDataShellMenu.push_back(new CItemData(pMenu, uMenuID, szCaption, eItemType));
 	else if (uMenuID)
 		m_arrItemDataContextMenu.push_back(new CItemData(pMenu, uMenuID, szCaption, eItemType));
 }
@@ -1316,6 +1319,7 @@ void CTrayMenuDlg::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpdis)
 		else
 		{
 			CItemData* pItemData = CItemData::Find(m_arrItemDataContextMenu, lpdis->itemID);
+			if (!pItemData) pItemData = CItemData::Find(m_arrItemDataShellMenu, lpdis->itemID);
 			if (!pItemData) pItemData = CItemData::Find(m_arrItemDataMainMenu, lpdis->itemID);
 			if (pItemData)
 			{
@@ -1431,6 +1435,7 @@ void CTrayMenuDlg::OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpmis)
 			lpmis->itemWidth = 24; // Breite des Platzes für das Icon links vom Itemtext
 
 			CItemData* pItemData = CItemData::Find(m_arrItemDataContextMenu, lpmis->itemID);
+			if (!pItemData) pItemData = CItemData::Find(m_arrItemDataShellMenu, lpmis->itemID);
 			if (!pItemData) pItemData = CItemData::Find(m_arrItemDataMainMenu, lpmis->itemID);
 			if (pItemData)
 			{
@@ -1470,7 +1475,7 @@ void CTrayMenuDlg::OnMenuRButtonUp(UINT uMenuPos, CMenu* pMenu)
 		CEntry* pEntry = m_arrEntries[uMenuId - MENU_ID_START];
 		CPoint ptMenuPos;
 		GetCursorPos(&ptMenuPos);
-		OpenShellContextMenu(pEntry->strPath, ptMenuPos.x, ptMenuPos.y, m_hWnd);
+		OpenShellContextMenu(pEntry, ptMenuPos);
 	}
 }
 
@@ -1482,7 +1487,7 @@ void CTrayMenuDlg::OnRButtonUp(UINT nFlags,	CPoint point)
 		if (m_uItemIDMenuSelect >= MENU_ID_START && m_uItemIDMenuSelect - MENU_ID_START < m_arrEntries.size())
 		{
 			CEntry* pEntry = m_arrEntries[m_uItemIDMenuSelect - MENU_ID_START];
-			OpenShellContextMenu(pEntry->strPath, point.x, point.y, m_hWnd);
+			OpenShellContextMenu(pEntry, point);
 		}
 	}
 }
@@ -1507,7 +1512,43 @@ void CTrayMenuDlg::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSubMenu)
 	}
 }
 
-bool CTrayMenuDlg::OpenShellContextMenu(const CString& strPath, int xPos, int yPos, HWND hwndParent)
+bool CTrayMenuDlg::OpenShellContextMenu(CEntry* pEntry, CPoint point)
+{
+	if (pEntry->strMergedPaths.size() == 0)
+	{
+		return OpenShellContextMenu(pEntry->strPath, point);
+	}
+
+	CMenu mnuContextMenu;
+	mnuContextMenu.CreatePopupMenu();
+
+	UINT uMenuID = ID_SHELL_MENU;
+	AppendMenuItem(&mnuContextMenu, uMenuID++, L"Open Explorer context menu for\u2026    ");
+	mnuContextMenu.SetDefaultItem(ID_SHELL_MENU);
+	mnuContextMenu.EnableMenuItem(ID_SHELL_MENU, MF_DISABLED);
+
+	AppendMenuItem(&mnuContextMenu, uMenuID, pEntry->strPath);
+	m_arrItemDataShellMenu[uMenuID++ - ID_SHELL_MENU]->hIcon = GetFileIcon(pEntry->strPath, m_hIconExplorer);
+
+	for (vector<CString>::iterator it = pEntry->strMergedPaths.begin(); it != pEntry->strMergedPaths.end() && uMenuID <= ID_SHELL_MENU_MAX; it++)
+	{
+		AppendMenuItem(&mnuContextMenu, uMenuID, *it);
+		m_arrItemDataShellMenu[uMenuID++ - ID_SHELL_MENU]->hIcon = GetFileIcon(*it, m_hIconExplorer);
+	}
+
+	BOOL bResult = FALSE;
+	DWORD dwSelection = mnuContextMenu.TrackPopupMenu(TPM_RETURNCMD | TPM_RECURSE, point.x, point.y, this);
+	if (dwSelection == ID_SHELL_MENU + 1)
+		bResult = OpenShellContextMenu(pEntry->strPath, point);
+	else if(dwSelection >= ID_SHELL_MENU - 2)
+		bResult = OpenShellContextMenu(pEntry->strMergedPaths[dwSelection - ID_SHELL_MENU - 2], point);
+
+	mnuContextMenu.DestroyMenu();
+	CItemData::Delete(m_arrItemDataShellMenu, TRUE, m_hIconExplorer);
+	return bResult;
+}
+
+bool CTrayMenuDlg::OpenShellContextMenu(const CString& strPath, CPoint point)
 {
 	ITEMIDLIST* idList = 0;
 	HRESULT result = SHParseDisplayName(strPath, 0, &idList, 0, 0);
@@ -1524,7 +1565,7 @@ bool CTrayMenuDlg::OpenShellContextMenu(const CString& strPath, int xPos, int yP
 	CComInterfaceReleaser iFolderReleaser(iFolder);
 
 	IContextMenu* iMenu = 0;
-	result = iFolder->GetUIObjectOf(hwndParent, 1, (const ITEMIDLIST**)&idChild, IID_IContextMenu, 0, (void**)&iMenu);
+	result = iFolder->GetUIObjectOf(m_hWnd, 1, (const ITEMIDLIST**)&idChild, IID_IContextMenu, 0, (void**)&iMenu);
 	if (!SUCCEEDED(result) || !iFolder)
 		return false;
 	CComInterfaceReleaser menuReleaser(iMenu);
@@ -1532,9 +1573,10 @@ bool CTrayMenuDlg::OpenShellContextMenu(const CString& strPath, int xPos, int yP
 	HMENU hMenu = CreatePopupMenu();
 	if (!hMenu)
 		return false;
+
 	if (SUCCEEDED(iMenu->QueryContextMenu(hMenu, 0, 1, 0x7FFF, CMF_NORMAL)))
 	{
-		int iCmd = TrackPopupMenuEx(hMenu, TPM_RETURNCMD | TPM_RECURSE, xPos, yPos, hwndParent, NULL);
+		int iCmd = TrackPopupMenuEx(hMenu, TPM_RETURNCMD | TPM_RECURSE, point.x, point.y, m_hWnd, NULL);
 		if (iCmd > 0)
 		{
 			SendMessage(WM_CANCELMODE); // close TrayMenu menu
@@ -1542,7 +1584,7 @@ bool CTrayMenuDlg::OpenShellContextMenu(const CString& strPath, int xPos, int yP
 			CMINVOKECOMMANDINFOEX info = { 0 };
 			info.cbSize = sizeof(info);
 			info.fMask = CMIC_MASK_UNICODE;
-			info.hwnd = hwndParent;
+			info.hwnd = m_hWnd;
 			info.lpVerb = (LPCSTR)((INT_PTR)iCmd - 1);
 			info.lpVerbW = (LPCWSTR)((INT_PTR)iCmd - 1);
 			info.nShow = SW_SHOWNORMAL;
@@ -1640,6 +1682,13 @@ HICON CTrayMenuDlg::GetIconForItem(UINT itemID)
 			pEntry->hIcon = GetFileIcon(pEntry->strPath, hIconDefault);
 		}
 		return pEntry->hIcon;
+	}
+
+	// Dynamisch erzeugte Items des Kontextmenüs zum Öffnen des Explorer-Kontextmenüs
+	if (itemID > ID_SHELL_MENU && itemID <= ID_SHELL_MENU_MAX)
+	{
+		CItemData* pItemData = CItemData::Find(m_arrItemDataShellMenu, itemID);
+		return pItemData ? pItemData->hIcon : 0;
 	}
 
 	return 0;

@@ -161,6 +161,12 @@ To include the Windows system folders "Desktop" and "Start menu" there is the se
 
 ## Updates
 
+### Version 1.5 (10.08.2023)
+
+* New: Folder icon can be set as tray icon via "Settings > Tray icon > Folder".
+* Changed: Ignore unreadable directories (e.g. junctions).
+* New: Show context menu for submenu items with merged folders to select for which folder the Explorer context menu is to be opened.
+
 ### Version 1.4 (06.08.2023)
 
 * New: Ability to group menu items using configuration file "traymenu.ini".

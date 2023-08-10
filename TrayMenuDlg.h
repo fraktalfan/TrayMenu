@@ -411,6 +411,7 @@ protected:
 	void DefineHotkey();
 	BOOL ShellExecuteWait(HWND hwnd, LPCWSTR lpOperation, LPCWSTR lpFile, LPCWSTR lpParameters, LPCWSTR lpDirectory, INT nShowCmd, DWORD dwMilliseconds = 5000);
 	BOOL ExportSettings();
+	BOOL GetProductAndVersion(CString& strProductName, CString& strProductVersion);
 	HICON GetIconForItem(UINT itemID);
 	HRESULT ResolveLnk(HWND hwnd, LPCSTR szLinkPath, LPWSTR szTargetPath, int iTargetPathSize);
 	HICON GetFileIcon(CString strPath, HICON hIconDefault);

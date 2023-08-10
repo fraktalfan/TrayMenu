@@ -695,8 +695,11 @@ void CTrayMenuDlg::OpenContextMenu()
 	CMenu mnuAbout;
 	mnuAbout.CreatePopupMenu();
 
-	AppendMenuItem(&mnuAbout, ID_ABOUT_TITLE, L"TrayMenu");
-	AppendMenuItem(&mnuAbout, ID_ABOUT_VERSION, L"Version 1.4");
+	CString strProductName = L"(TrayMenu)", strProductVersion = L"(0.0.0.0)";
+	GetProductAndVersion(strProductName, strProductVersion);
+
+	AppendMenuItem(&mnuAbout, ID_ABOUT_TITLE, strProductName);
+	AppendMenuItem(&mnuAbout, ID_ABOUT_VERSION, L"Version " + strProductVersion);
 	AppendMenuItem(&mnuAbout, ID_ABOUT_WEBSITE, L"Go to website");
 
 	mnuAbout.SetDefaultItem(ID_ABOUT_TITLE);
@@ -2184,4 +2187,33 @@ BOOL CTrayMenuDlg::ExportSettings()
 	if (!bResult) AfxMessageBox(L"Export failed.");
 
 	return bResult;
+}
+
+BOOL CTrayMenuDlg::GetProductAndVersion(CString& strProductName, CString& strProductVersion)
+{
+	CString strAppPath;
+	GetModuleFileName(GetModuleHandle(NULL), strAppPath.GetBuffer(MAX_PATH), MAX_PATH);
+	strAppPath.ReleaseBuffer();
+	if (strAppPath.IsEmpty()) return FALSE;
+
+	DWORD dwHandle; // not used
+	DWORD dwSize = GetFileVersionInfoSize(strAppPath, &dwHandle);
+	if (dwSize == 0) return FALSE;
+
+	vector<BYTE> data(dwSize);
+	if (!GetFileVersionInfo(strAppPath, NULL, dwSize, &data[0])) return FALSE;
+
+	LPVOID pvProductName = NULL;
+	unsigned int iProductNameLen = 0;
+	LPVOID pvProductVersion = NULL;
+	unsigned int iProductVersionLen = 0;
+
+	if (!VerQueryValue(&data[0], _T("\\StringFileInfo\\040704b0\\ProductName"), &pvProductName, &iProductNameLen) ||
+		!VerQueryValue(&data[0], _T("\\StringFileInfo\\040704b0\\ProductVersion"), &pvProductVersion, &iProductVersionLen))
+		return FALSE;
+
+	strProductName.SetString((LPCTSTR)pvProductName, iProductNameLen);
+	strProductVersion.SetString((LPCTSTR)pvProductVersion, iProductVersionLen);
+
+	return TRUE;
 }

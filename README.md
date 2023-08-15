@@ -29,7 +29,7 @@ To permanently display the TrayMenu icon in the notification area of the taskbar
 ![00e-taskbar-overflow](https://github.com/fraktalfan/TrayMenu/assets/93649344/c13eb04c-c0e6-46cb-bf87-b060a7709063)
 
 ## Usage
-A normal click on the TrayMenu icon or pressing the key combination Ctrl+F1 (changeable) opens the Start menu for selecting the applications and files stored there:
+A click on the TrayMenu icon or pressing the key combination Ctrl+F1 (changeable) opens the Start menu for selecting the applications and files stored there:
 
 ![01-mainmenu](https://github.com/fraktalfan/TrayMenu/assets/93649344/71c0736d-8f4f-49ef-8e4e-7cdb143fa6b6)
 
@@ -56,9 +56,9 @@ Reloads the contents of the Start menu folder so that changed folder contents ar
 ### Settings > Select folder
 Another folder can be selected here, the content of which should be displayed in the Start menu:
 
-![03-menu-folder](https://github.com/fraktalfan/TrayMenu/assets/93649344/bb803526-551b-4809-8d8a-c4aa2e2fc8c1)
+![03-menu-folder](https://github.com/fraktalfan/TrayMenu/assets/93649344/cd10e2cb-15ce-4491-9a5c-e00d3f78806e)
 
-By default, the personal Start Menu folder (C:\Users\username\AppData\Roaming\Microsoft\Windows\Start Menu) is selected. A new folder can be searched for using "Browse". The program remembers the previously searched folders. They are displayed below and can be quickly selected with a single click. The currently selected folder has a check mark next to it. If a folder is to be removed from the list of remembered folders, simply click on the corresponding "Forget" entry in the area below.
+By default, the personal Start Menu folder (C:\Users\username\AppData\Roaming\Microsoft\Windows\Start Menu) is selected. A new folder can be searched for using "Browse". The program remembers the previously searched folders. They are displayed below and can be quickly selected with a single click. The currently selected folder has a check mark next to it. To remove a folder from the list of remembered folders, simply right-click on the corresponding entry and click "Forget" (as shown in the screenshot above). This also removes all settings made for this folder.
 
 ### Settings > Include
 Here you can select which Windows system folders (Desktop or Start menu) should also be included in the Start menu:
@@ -68,18 +68,22 @@ Here you can select which Windows system folders (Desktop or Start menu) should 
 ### Settings > Tray icon
 Another icon can be selected here, which is to be displayed for the currently selected folder in the taskbar:
 
-![04-tray-icon](https://github.com/fraktalfan/TrayMenu/assets/93649344/778ba21a-bffe-4e29-b7ea-99181cfe5037)
+![04-tray-icon](https://github.com/fraktalfan/TrayMenu/assets/93649344/fa05b8ec-212e-416f-8cc8-d2e7c881e436)
+
+The bottom entry displays the folder icon, which can be changed via Windows Explorer (right click on the folder > Properties > Customize > Change icon).
 
 ### Settings > Menu colors
-The colors of the menu can be individually adjusted. The following presets are available: "Default" (standard Windows colors), "Light", "Dark" (as can be seen in the screenshots) and "Custom" (user-defined):
+The colors of the menu can be selected and also individually adjusted here:
 
-![05-menu-colors](https://github.com/fraktalfan/TrayMenu/assets/93649344/e7305042-3823-4dce-b6ef-80276002faac)
+![05-menu-colors](https://github.com/fraktalfan/TrayMenu/assets/93649344/e6b1a9d4-751f-4d25-8641-16df55f4fc46)
 
-The custom colors can be changed via "Customize":
+The following color presets are available by default, which can be changed, deleted or supplemented with your own presets as you wish:
 
-![06-menu-colors-customize](https://github.com/fraktalfan/TrayMenu/assets/93649344/4fd20c21-d99b-4ffe-b585-6213ab16905f)
+![18-menu-style-samples](https://github.com/fraktalfan/TrayMenu/assets/93649344/7f63ba52-aa3a-40d7-8169-f2489364b8f6)
 
-The set colors apply equally to all Start menu folders.
+The color presets can be changed via "Customize", saved with "Save" and deleted via right-click + "Delete". If you have "misconfigured" the presets, you can restore them with "Restore presets":
+
+![06-menu-colors-customize](https://github.com/fraktalfan/TrayMenu/assets/93649344/b0a23447-4e53-4227-8e68-e1dbd1c3504f)
 
 ### Settings > Autostart
 Here you can set that TrayMenu is started automatically when Windows starts:
@@ -160,6 +164,11 @@ In the example above, a shortcut to the folder "C:\ProgramData\Microsoft\Windows
 To include the Windows system folders "Desktop" and "Start menu" there is the setting "Include" in the "Settings" menu since version 1.1.
 
 ## Updates
+
+### Version 1.6 (15.08.2023)
+
+* Changed: Reworked Menu "Settings > Menu colors": Custom colors can now be saved as presets.
+* Changed the way to "forget" a remembered menu folder: Right-click it in the "Settings > Select folder" menu and select "Forget".
 
 ### Version 1.5 (10.08.2023)
 

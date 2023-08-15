@@ -15,8 +15,6 @@
 #define new DEBUG_NEW
 #endif
 
-#define MENU_ID_START 33100
-
 // CTrayMenuDlg-Dialogfeld
 
 CTrayMenuDlg::CTrayMenuDlg(CString strFolder, CWnd* pParent /*=nullptr*/)
@@ -38,39 +36,6 @@ CTrayMenuDlg::CTrayMenuDlg(CString strFolder, CWnd* pParent /*=nullptr*/)
 	m_hbrMenuBackground = 0;
 	m_uHotkeyModifiers = MOD_CONTROL;
 	m_uHotkeyKeyCode = VK_F1;
-
-	m_menuStyleLight.SetMenuStyle
-	(
-		MenuStyle::LIGHT, 
-		RGB(0, 0, 0),		// Menu text
-		RGB(255, 255, 255),	// Menu background
-		RGB(128, 128, 128),	// Separator
-		RGB(123, 160, 204),	// Selection - outer border
-		RGB(232, 241, 250),	// Selection - inner border
-		RGB(189, 216, 248)	// Selection - background
-	);
-
-	m_menuStyleDark.SetMenuStyle
-	(
-		MenuStyle::DARK,
-		RGB(255, 255, 255),	// Menu text
-		RGB(64, 64, 64),	// Menu background
-		RGB(128, 128, 128),	// Separator
-		RGB(92, 92, 92),	// Selection - outer border
-		RGB(92, 92, 92),	// Selection - inner border
-		RGB(92, 92, 92)		// Selection - background
-	);
-
-	m_menuStyleCustom.SetMenuStyle
-	(
-		MenuStyle::CUSTOM,
-		RGB(0, 0, 0),		// Menu text
-		RGB(243, 245, 243),	// Menu background
-		RGB(128, 128, 128),	// Separator
-		RGB(108, 226, 108),	// Selection - outer border
-		RGB(233, 255, 233),	// Selection - inner border
-		RGB(191, 229, 191)	// Selection - background
-	);
 
 	m_hIconFolderSelected = 0;
 
@@ -96,7 +61,6 @@ CTrayMenuDlg::CTrayMenuDlg(CString strFolder, CWnd* pParent /*=nullptr*/)
 	m_hIconReload = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_RELOAD), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 	m_hIconSettings = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_SETTINGS), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 	m_hIconWebsite = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_WEBSITE), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
-	m_hIconSettingsFolder = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_SETTINGS_FOLD), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 	m_hIconSettingsIcon = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_SETTINGS_ICON), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 	m_hIconSettingsLocalized = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_SETTINGS_LOC), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 	m_hIconSettingsFoldersFirst = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_SETTINGS_FOLDF), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
@@ -117,6 +81,9 @@ CTrayMenuDlg::CTrayMenuDlg(CString strFolder, CWnd* pParent /*=nullptr*/)
 	m_hIconHotkey = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_HOTKEY), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 	m_hIconLeftmost = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_LEFTMOST), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 	m_hIconExportSettings = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_EXP_SETTINGS), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+	m_hIconSave = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_SAVE), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+	m_hIconDelete = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_DELETE), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+	m_hIconRestore = (HICON)::LoadImage(::AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_ICON_RESTORE), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
 
 	m_hIconSelected = m_hIconBlue;
 	m_nIconIndex = 0;
@@ -153,6 +120,7 @@ void CTrayMenuDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_HOTKEY, m_hotKeyCtrl);
+	DDX_Control(pDX, IDC_EDIT, m_edtInput);
 	DDX_Control(pDX, IDC_STATIC_MESSAGE, m_stcDlgMessage);
 }
 
@@ -190,6 +158,7 @@ BOOL CTrayMenuDlg::OnInitDialog()
 	if (!SUCCEEDED(m_hrCoInitialize))
 		AfxMessageBox(L"CoInitialize failed.");
 
+	m_menuStyle.CreateDefaultMenuStyles(FALSE, TRUE);
 	LoadSettings();
 	CreateTrayIcon();
 	ReloadMenu();
@@ -258,12 +227,21 @@ void CTrayMenuDlg::OnWindowPosChanging(WINDOWPOS* lpwndpos)
 	CDialogEx::OnWindowPosChanging(lpwndpos);
 }
 
+void CTrayMenuDlg::ResetDialog()
+{
+	m_hotKeyCtrl.ShowWindow(SW_HIDE);
+	m_edtInput.ShowWindow(SW_HIDE);
+}
+
 void CTrayMenuDlg::OnOK()
 {
 	switch (m_DlgMode)
 	{
 	case DlgMode::HOTKEY:
 		DefineHotkey();
+		break;
+	case DlgMode::COLORNAME:
+		SaveMenuStyle();
 		break;
 	}
 	m_DlgMode = DlgMode::INIT;
@@ -319,16 +297,10 @@ void CTrayMenuDlg::LoadSettings()
 	m_uHotkeyModifiers = AfxGetApp()->GetProfileInt(strProfile, L"HotkeyModifiers", MOD_CONTROL);
 	m_uHotkeyKeyCode = AfxGetApp()->GetProfileInt(strProfile, L"HotkeyKeyCode", VK_F1);
 
-	int iMenuStyle = AfxGetApp()->GetProfileInt(L"MenuStyles", L"Style", (int)MenuStyle::DEFAULT);
-	m_menuStyleCustom.colMenuText = (COLORREF)AfxGetApp()->GetProfileInt(L"MenuStyles", L"TextColor", (int)m_menuStyleCustom.colMenuText);
-	m_menuStyleCustom.colMenuBackground = (COLORREF)AfxGetApp()->GetProfileInt(L"MenuStyles", L"BackgroundColor", (int)m_menuStyleCustom.colMenuBackground);
-	m_menuStyleCustom.colMenuSeparator = (COLORREF)AfxGetApp()->GetProfileInt(L"MenuStyles", L"SeparatorColor", (int)m_menuStyleCustom.colMenuSeparator);
-	m_menuStyleCustom.colMenuSelectionOuter = (COLORREF)AfxGetApp()->GetProfileInt(L"MenuStyles", L"SelectionOuterColor", (int)m_menuStyleCustom.colMenuSelectionOuter);
-	m_menuStyleCustom.colMenuSelectionInner = (COLORREF)AfxGetApp()->GetProfileInt(L"MenuStyles", L"SelectionInnerColor", (int)m_menuStyleCustom.colMenuSelectionInner);
-	m_menuStyleCustom.colMenuSelectionBackg = (COLORREF)AfxGetApp()->GetProfileInt(L"MenuStyles", L"SelectionBackgColor", (int)m_menuStyleCustom.colMenuSelectionBackg);
+	m_menuStyle.LoadMenuStyle(strProfile);
 
 	SelectIcon(m_dwMenuIdIconSelected);
-	SetMenuStyle((MenuStyle)iMenuStyle, FALSE);
+	SetMenuStyle();
 	RegisterHotkey();
 }
 
@@ -349,41 +321,27 @@ void CTrayMenuDlg::SaveSettings()
 	AfxGetApp()->WriteProfileInt(strProfile, L"HotkeyModifiers", m_uHotkeyModifiers);
 	AfxGetApp()->WriteProfileInt(strProfile, L"HotkeyKeyCode", m_uHotkeyKeyCode);
 
-	AfxGetApp()->WriteProfileInt(L"MenuStyles", L"Style", (int)m_menuStyleController.menuStyle);
-	AfxGetApp()->WriteProfileInt(L"MenuStyles", L"TextColor", (int)m_menuStyleCustom.colMenuText);
-	AfxGetApp()->WriteProfileInt(L"MenuStyles", L"BackgroundColor", (int)m_menuStyleCustom.colMenuBackground);
-	AfxGetApp()->WriteProfileInt(L"MenuStyles", L"SeparatorColor", (int)m_menuStyleCustom.colMenuSeparator);
-	AfxGetApp()->WriteProfileInt(L"MenuStyles", L"SelectionOuterColor", (int)m_menuStyleCustom.colMenuSelectionOuter);
-	AfxGetApp()->WriteProfileInt(L"MenuStyles", L"SelectionInnerColor", (int)m_menuStyleCustom.colMenuSelectionInner);
-	AfxGetApp()->WriteProfileInt(L"MenuStyles", L"SelectionBackgColor", (int)m_menuStyleCustom.colMenuSelectionBackg);
+	m_menuStyle.SaveMenuStyle(strProfile);
 }
 
-void CTrayMenuDlg::SetMenuStyle(MenuStyle eMenuStyle, BOOL bReloadAndSave)
+void CTrayMenuDlg::SetMenuStyle(UINT uMenuID, BOOL bReloadAndSave)
 {
-	//BOOL bOwnerDrawOld = m_menuStyleController.bOwnerDraw;
-
-	switch (eMenuStyle)
+	if (uMenuID)
 	{
-		case MenuStyle::DEFAULT:
+		CString strCurrentMenuStyle, strMenuStyleToSet;
+		DWORD dwIndex = 0;
+		UINT uCurrentMenuID = ID_COLORS;
+		BOOL bFound = FALSE;
+		while ((strCurrentMenuStyle = FindNextMenuStyle(dwIndex)) != L"")
 		{
-			m_menuStyleController.SetMenuStyle(m_menuStyleDefault);
-			break;
+			CMenuStyle menuStyle;
+			menuStyle.LoadMenuStyle(L"MenuStyles\\" + strCurrentMenuStyle);
+			if (menuStyle == m_menuStyle) bFound = TRUE;
+			if (uCurrentMenuID == uMenuID) strMenuStyleToSet = strCurrentMenuStyle;
+			uCurrentMenuID++;
 		}
-		case MenuStyle::LIGHT:
-		{
-			m_menuStyleController.SetMenuStyle(m_menuStyleLight);
-			break;
-		}
-		case MenuStyle::DARK:
-		{
-			m_menuStyleController.SetMenuStyle(m_menuStyleDark);
-			break;
-		}
-		case MenuStyle::CUSTOM:
-		{
-			m_menuStyleController.SetMenuStyle(m_menuStyleCustom);
-			break;
-		}
+		if (!bFound && IDYES != MessageBox(L"Discard unsaved custom colors?", L"Warning", MB_YESNO | MB_ICONWARNING)) return;
+		m_menuStyle.LoadMenuStyle(L"MenuStyles\\" + strMenuStyleToSet);
 	}
 
 	if (m_hbrMenuBackground)
@@ -392,12 +350,9 @@ void CTrayMenuDlg::SetMenuStyle(MenuStyle eMenuStyle, BOOL bReloadAndSave)
 		m_hbrMenuBackground = 0;
 	}
 
-//	m_hbrMenuBackground = ::CreateSolidBrush(m_menuStyleController.colMenuBackground);
-
 	if (bReloadAndSave)
 	{
-		//if (bOwnerDrawOld != m_menuStyleController.bOwnerDraw)
-			ReloadMenu();
+		ReloadMenu();
 		SaveSettings();
 	}
 }
@@ -414,33 +369,37 @@ BOOL CTrayMenuDlg::SelectColor(COLORREF& color)
 	return FALSE;
 }
 
-COLORREF CTrayMenuDlg::GetCustomColor(UINT uMenuID)
+COLORREF CTrayMenuDlg::GetMenuColor(UINT uMenuID)
 {
 	switch (uMenuID)
 	{
-		case ID_SETTINGS_COLORS_OWN_TXT:
+		case ID_COLORS_CUST_TXT:
 		{
-			return m_menuStyleCustom.colMenuText;
+			return m_menuStyle.colMenuText;
 		}
-		case ID_SETTINGS_COLORS_OWN_BGD:
+		case ID_COLORS_CUST_BGD:
 		{
-			return m_menuStyleCustom.colMenuBackground;
+			return m_menuStyle.colMenuBackground;
 		}
-		case ID_SETTINGS_COLORS_OWN_SEP:
+		case ID_COLORS_CUST_SEP:
 		{
-			return m_menuStyleCustom.colMenuSeparator;
+			return m_menuStyle.colMenuSeparator;
 		}
-		case ID_SETTINGS_COLORS_OWN_IOB:
+		case ID_COLORS_CUST_ITX:
 		{
-			return m_menuStyleCustom.colMenuSelectionOuter;
+			return m_menuStyle.colMenuSelectionText;
 		}
-		case ID_SETTINGS_COLORS_OWN_IIB:
+		case ID_COLORS_CUST_IOB:
 		{
-			return m_menuStyleCustom.colMenuSelectionInner;
+			return m_menuStyle.colMenuSelectionOuter;
 		}
-		case ID_SETTINGS_COLORS_OWN_IBG:
+		case ID_COLORS_CUST_IIB:
 		{
-			return m_menuStyleCustom.colMenuSelectionBackg;
+			return m_menuStyle.colMenuSelectionInner;
+		}
+		case ID_COLORS_CUST_IBG:
+		{
+			return m_menuStyle.colMenuSelectionBackg;
 		}
 	}
 	return -1;
@@ -575,9 +534,9 @@ void CTrayMenuDlg::OpenMenu(BOOL bOpenLeftmost)
 		m_bIsMenuOpened = TRUE;
 		DWORD dwSelection = pmnuSubMenu->TrackPopupMenu(uMenuAlignFlag | TPM_RETURNCMD, nMenuPosX, nMenuPosY, this);
 		m_bIsMenuOpened = FALSE;
-		if (dwSelection >= MENU_ID_START && dwSelection - MENU_ID_START < m_arrEntries.size())
+		if (dwSelection >= ID_MENU_START && dwSelection - ID_MENU_START < m_arrEntries.size())
 		{
-			CEntry* pEntry = m_arrEntries[dwSelection - MENU_ID_START];
+			CEntry* pEntry = m_arrEntries[dwSelection - ID_MENU_START];
 			OpenPath(pEntry->strPath);
 		}
 	}
@@ -593,22 +552,10 @@ void CTrayMenuDlg::OpenContextMenu()
 	CString strFolder;
 	DWORD dwIndex = 0;
 	UINT uMenuID = ID_SEL_FOLDER;
-	while ((strFolder = FindNextProfile(dwIndex)) != L"" && uMenuID < ID_SEL_FOLDER_MAX)
+	while ((strFolder = FindNextFolder(dwIndex)) != L"" && uMenuID <= ID_SEL_FOLDER_MAX)
 	{
 		if (uMenuID == ID_SEL_FOLDER) AppendMenuItem(&mnuSelectFolder);
-		AppendMenuItem(&mnuSelectFolder, uMenuID, strFolder + (strFolder == m_strFolder ? L" \u2714" : L""));
-		uMenuID++;
-	}
-	// Existierende Folder hinzufügen (Löschen)
-	dwIndex = 0;
-	uMenuID = ID_DEL_FOLDER;
-	while ((strFolder = FindNextProfile(dwIndex)) != L"" && uMenuID < ID_DEL_FOLDER_MAX)
-	{
-		if (strFolder != m_strFolder)
-		{
-			if (uMenuID == ID_DEL_FOLDER) AppendMenuItem(&mnuSelectFolder);
-			AppendMenuItem(&mnuSelectFolder, uMenuID++, L"Forget " + strFolder);
-		}
+		AppendMenuItem(&mnuSelectFolder, uMenuID++, strFolder + (strFolder == m_strFolder ? L" \u2714" : L""));
 	}
 
 	// Settings-Submenü "Include"
@@ -637,22 +584,32 @@ void CTrayMenuDlg::OpenContextMenu()
 	// Settings-Submenü "Custom"
 	CMenu mnuSettingsCustom;
 	mnuSettingsCustom.CreatePopupMenu();
-	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_BGD, L"Background");
-	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_TXT, L"Item text");
-	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_SEP, L"Separator");
-	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_IBG, L"Selection - background");
-	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_IOB, L"Selection - outer border");
-	AppendMenuItem(&mnuSettingsCustom, ID_SETTINGS_COLORS_OWN_IIB, L"Selection - inner border");
+	AppendMenuItem(&mnuSettingsCustom, ID_COLORS_CUST_BGD, L"Background");
+	AppendMenuItem(&mnuSettingsCustom, ID_COLORS_CUST_TXT, L"Item text");
+	AppendMenuItem(&mnuSettingsCustom, ID_COLORS_CUST_SEP, L"Separator");
+	AppendMenuItem(&mnuSettingsCustom, ID_COLORS_CUST_IBG, L"Background (selected)");
+	AppendMenuItem(&mnuSettingsCustom, ID_COLORS_CUST_IIB, L"Inner border (selected)");
+	AppendMenuItem(&mnuSettingsCustom, ID_COLORS_CUST_IOB, L"Outer border (selected)");
+	AppendMenuItem(&mnuSettingsCustom, ID_COLORS_CUST_ITX, L"Item text (selected)");
 
 	// Settings-Submenü "Menu colors"
 	CMenu mnuSettingsColors;
 	mnuSettingsColors.CreatePopupMenu();
-	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_DEF, L"Default" + CString (m_menuStyleController.menuStyle == MenuStyle::DEFAULT ? L" \u2714" : L""));
-	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_LIG, L"Light" + CString(m_menuStyleController.menuStyle == MenuStyle::LIGHT ? L" \u2714" : L""));
-	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_DRK, L"Dark" + CString(m_menuStyleController.menuStyle == MenuStyle::DARK ? L" \u2714" : L""));
-	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_OWN, L"Custom" + CString(m_menuStyleController.menuStyle == MenuStyle::CUSTOM ? L" \u2714" : L""));
-	AppendMenuItem(&mnuSettingsColors);
+	// Existierende Farben hinzufügen (Auswahl)
+	CString strMenuStyle;
+	dwIndex = 0;
+	uMenuID = ID_COLORS;
+	while ((strMenuStyle = FindNextMenuStyle(dwIndex)) != L"" && uMenuID <= ID_COLORS_MAX)
+	{
+		CMenuStyle menuStyle;
+		menuStyle.LoadMenuStyle(L"MenuStyles\\" + strMenuStyle);
+		AppendMenuItem(&mnuSettingsColors, uMenuID++, strMenuStyle + CString(menuStyle == m_menuStyle ? L" \u2714" : L""));
+	}
+	if (uMenuID != ID_COLORS) AppendMenuItem(&mnuSettingsColors);
 	AppendMenuItem(&mnuSettingsColors, ID_SETTINGS_COLORS_CUST, L"Customize", &mnuSettingsCustom);
+	AppendMenuItem(&mnuSettingsColors, ID_COLORS_SAVE, L"Save...");
+	AppendMenuItem(&mnuSettingsColors);
+	AppendMenuItem(&mnuSettingsColors, ID_COLORS_RESTORE, L"Restore presets");
 
 	// Settings-Submenü "Autostart"
 	CMenu mnuAutostart;
@@ -664,12 +621,11 @@ void CTrayMenuDlg::OpenContextMenu()
 	dwIndex = 0;
 	uMenuID = ID_REM_FOLDER;
 	m_arrAutostartFolders.clear();
-	while ((strFolder = FindNextAutostartFolder(dwIndex)) != L"" && uMenuID < ID_REM_FOLDER_MAX)
+	while ((strFolder = FindNextAutostartFolder(dwIndex)) != L"" && uMenuID <= ID_REM_FOLDER_MAX)
 	{
 		if (bAddItem && uMenuID == ID_REM_FOLDER) AppendMenuItem(&mnuAutostart);
-		AppendMenuItem(&mnuAutostart, uMenuID, L"Remove " + strFolder + (strFolder == m_strFolder ? L" \u2714" : L""));
+		AppendMenuItem(&mnuAutostart, uMenuID++, L"Remove " + strFolder + (strFolder == m_strFolder ? L" \u2714" : L""));
 		m_arrAutostartFolders.push_back(strFolder);
-		uMenuID++;
 	}
 
 	// Submenü "Settings"
@@ -784,6 +740,7 @@ void CTrayMenuDlg::OpenContextMenu()
 			if (BrowseFolder())
 			{
 				LoadSettings();
+				SaveSettings(); 
 				ReloadMenu();
 			}
 			break;
@@ -810,60 +767,56 @@ void CTrayMenuDlg::OpenContextMenu()
 			SaveSettings();
 			break;
 		}
-		case ID_SETTINGS_COLORS_DEF:
+		case ID_COLORS_CUST_TXT:
 		{
-			SetMenuStyle(MenuStyle::DEFAULT, TRUE);
+			if (SelectColor(m_menuStyle.colMenuText))
+				SetMenuStyle(0, TRUE);
 			break;
 		}
-		case ID_SETTINGS_COLORS_LIG:
+		case ID_COLORS_CUST_BGD:
 		{
-			SetMenuStyle(MenuStyle::LIGHT, TRUE);
+			if (SelectColor(m_menuStyle.colMenuBackground))
+				SetMenuStyle(0, TRUE);
 			break;
 		}
-		case ID_SETTINGS_COLORS_DRK:
+		case ID_COLORS_CUST_SEP:
 		{
-			SetMenuStyle(MenuStyle::DARK, TRUE);
+			if (SelectColor(m_menuStyle.colMenuSeparator))
+				SetMenuStyle(0, TRUE);
 			break;
 		}
-		case ID_SETTINGS_COLORS_OWN:
+		case ID_COLORS_CUST_ITX:
 		{
-			SetMenuStyle(MenuStyle::CUSTOM, TRUE);
+			if (SelectColor(m_menuStyle.colMenuSelectionText))
+				SetMenuStyle(0, TRUE);
 			break;
 		}
-		case ID_SETTINGS_COLORS_OWN_TXT:
+		case ID_COLORS_CUST_IOB:
 		{
-			if (SelectColor(m_menuStyleCustom.colMenuText))
-				SetMenuStyle(MenuStyle::CUSTOM, TRUE);
+			if (SelectColor(m_menuStyle.colMenuSelectionOuter))
+				SetMenuStyle(0, TRUE);
 			break;
 		}
-		case ID_SETTINGS_COLORS_OWN_BGD:
+		case ID_COLORS_CUST_IIB:
 		{
-			if (SelectColor(m_menuStyleCustom.colMenuBackground))
-				SetMenuStyle(MenuStyle::CUSTOM, TRUE);
+			if (SelectColor(m_menuStyle.colMenuSelectionInner))
+				SetMenuStyle(0, TRUE);
 			break;
 		}
-		case ID_SETTINGS_COLORS_OWN_SEP:
+		case ID_COLORS_CUST_IBG:
 		{
-			if (SelectColor(m_menuStyleCustom.colMenuSeparator))
-				SetMenuStyle(MenuStyle::CUSTOM, TRUE);
+			if (SelectColor(m_menuStyle.colMenuSelectionBackg))
+				SetMenuStyle(0, TRUE);
 			break;
 		}
-		case ID_SETTINGS_COLORS_OWN_IOB:
+		case ID_COLORS_SAVE:
 		{
-			if (SelectColor(m_menuStyleCustom.colMenuSelectionOuter))
-				SetMenuStyle(MenuStyle::CUSTOM, TRUE);
+			ShowDialogColorName();
 			break;
 		}
-		case ID_SETTINGS_COLORS_OWN_IIB:
+		case ID_COLORS_RESTORE:
 		{
-			if (SelectColor(m_menuStyleCustom.colMenuSelectionInner))
-				SetMenuStyle(MenuStyle::CUSTOM, TRUE);
-			break;
-		}
-		case ID_SETTINGS_COLORS_OWN_IBG:
-		{
-			if (SelectColor(m_menuStyleCustom.colMenuSelectionBackg))
-				SetMenuStyle(MenuStyle::CUSTOM, TRUE);
+			m_menuStyle.CreateDefaultMenuStyles(TRUE, FALSE);
 			break;
 		}
 		case ID_DEFINE_HOTKEY:
@@ -888,18 +841,14 @@ void CTrayMenuDlg::OpenContextMenu()
 					ReloadMenu();
 				}
 			}
-			else if (dwSelection >= ID_DEL_FOLDER && dwSelection <= ID_DEL_FOLDER_MAX)
-			{
-				CItemData* pItemData = CItemData::Find(m_arrItemDataContextMenu, dwSelection);
-				if (pItemData)
-				{
-					RemoveProfile(pItemData->strCaption);
-				}
-			}
 			else if (dwSelection >= ID_REM_FOLDER && dwSelection <= ID_REM_FOLDER_MAX)
 			{
 				CString strFolder = m_arrAutostartFolders[dwSelection - ID_REM_FOLDER];
 				FindInAutostart(strFolder, TRUE); // TRUE = Eintrag löschen
+			}
+			else if (dwSelection >= ID_COLORS && dwSelection <= ID_COLORS_MAX)
+			{
+				SetMenuStyle(dwSelection, TRUE);
 			}
 			else
 			{
@@ -923,7 +872,7 @@ BOOL CTrayMenuDlg::ReloadMenu()
 	}
 
 	m_bIsReady = ReadFolder() && CreateMenu();
-	SetFolder(m_strFolder);
+//	SetFolder(m_strFolder); // NOTE: Keine Ahnung, wozu ich das hier wohl mal eingefügt hatte...
 	SelectIcon(m_dwMenuIdIconSelected);
 	UpdateTrayIcon(m_hIconSelected, m_entryRoot.strDisplayName);
 	return m_bIsReady;
@@ -931,7 +880,7 @@ BOOL CTrayMenuDlg::ReloadMenu()
 
 BOOL CTrayMenuDlg::ReadFolder()
 {
-	m_nCurrentMenuID = MENU_ID_START;
+	m_nCurrentMenuID = ID_MENU_START;
 
 	m_entryRoot.bIsRootElement = TRUE;
 	m_entryRoot.uMenuID = m_nCurrentMenuID;
@@ -999,7 +948,6 @@ BOOL CTrayMenuDlg::AddPath(CEntry* pEntry, CString strFolder, CString strPattern
 					pNewEntry->strPath = strPath;
 					pNewEntry->strName = data.cFileName;
 					pNewEntry->strDisplayName = strDisplayName;
-					pNewEntry->bMenuStyleOwnerDraw = m_menuStyleController.bOwnerDraw;
 
 					pEntry->children.push_back(pNewEntry);
 					m_arrEntries.push_back(pNewEntry);
@@ -1022,7 +970,6 @@ BOOL CTrayMenuDlg::AddPath(CEntry* pEntry, CString strFolder, CString strPattern
 				pNewEntry->strPath = strPath;
 				pNewEntry->strName = data.cFileName;
 				pNewEntry->strDisplayName = GetLocalizedName(strPath, data.cFileName);
-				pNewEntry->bMenuStyleOwnerDraw = m_menuStyleController.bOwnerDraw;
 
 				// Datei-Verknüpfungen (*.lnk)
 				if (pNewEntry->strDisplayName.Right(4).CompareNoCase(L".lnk") == 0)
@@ -1227,14 +1174,13 @@ void CTrayMenuDlg::AppendMenuItem(CMenu* pMenu, UINT uMenuID, LPCWSTR szCaption,
 {
 	if (pMenu == NULL) return;
 
-	UINT uOwnerDrawFlag = (m_menuStyleController.bOwnerDraw ? MF_OWNERDRAW : 0);
 	ItemType eItemType = ItemType::INIT;
 
 	if (pSubMenu)
 	{
 		// Submenü
 		eItemType = ItemType::POPUP;
-		pMenu->AppendMenu(MF_POPUP | uOwnerDrawFlag, (UINT_PTR)pSubMenu->m_hMenu, szCaption);
+		pMenu->AppendMenu(MF_POPUP | MF_OWNERDRAW, (UINT_PTR)pSubMenu->m_hMenu, szCaption);
 
 		// Da Submenüs mittels AppendMenu() keine IDs zugeordnet werden können, dies nachträglich tun, indem
 		// unmittelbar nach dem AppendMenu-Aufruf dem zuletzt hinzugefügten Submenü-Item die Item-Info aktualisiert wird:
@@ -1249,31 +1195,28 @@ void CTrayMenuDlg::AppendMenuItem(CMenu* pMenu, UINT uMenuID, LPCWSTR szCaption,
 	{
 		// normales Item
 		eItemType = ItemType::STRING;
-		pMenu->AppendMenu(MF_STRING | uOwnerDrawFlag, uMenuID, szCaption);
+		pMenu->AppendMenu(MF_STRING | MF_OWNERDRAW, uMenuID, szCaption);
 	}
 	else
 	{
 		// Separator
 		eItemType = ItemType::SEPARATOR;
-		pMenu->AppendMenu(MF_SEPARATOR | uOwnerDrawFlag, ID_SEPARATOR);
+		pMenu->AppendMenu(MF_SEPARATOR | MF_OWNERDRAW, ID_SEPARATOR);
 	}
 
-	if (m_menuStyleController.bOwnerDraw)
-	{
-		// Hintergrundfarbe setzen
-		if (!m_hbrMenuBackground)
-			m_hbrMenuBackground = ::CreateSolidBrush(m_menuStyleController.colMenuBackground);
+	// Hintergrundfarbe setzen
+	if (!m_hbrMenuBackground)
+		m_hbrMenuBackground = ::CreateSolidBrush(m_menuStyle.colMenuBackground);
 
-		MENUINFO mi = { 0 };
-		mi.cbSize = sizeof(MENUINFO);
-		pMenu->GetMenuInfo(&mi);
-		mi.hbrBack = m_hbrMenuBackground;
-		mi.fMask = MIM_BACKGROUND | MIM_STYLE;
-//		mi.dwStyle = MIM_APPLYTOSUBMENUS;
-		pMenu->SetMenuInfo(&mi);
-	}
+	MENUINFO mi = { 0 };
+	mi.cbSize = sizeof(MENUINFO);
+	pMenu->GetMenuInfo(&mi);
+	mi.hbrBack = m_hbrMenuBackground;
+	mi.fMask = MIM_BACKGROUND | MIM_STYLE;
+//	mi.dwStyle = MIM_APPLYTOSUBMENUS;
+	pMenu->SetMenuInfo(&mi);
 
-	if (uMenuID >= MENU_ID_START || bAddToItemDataMainMenu)
+	if (uMenuID >= ID_MENU_START || bAddToItemDataMainMenu)
 		m_arrItemDataMainMenu.push_back(new CItemData(pMenu, uMenuID, szCaption, eItemType));
 	else if (uMenuID >= ID_SHELL_MENU && uMenuID <= ID_SHELL_MENU_MAX)
 		m_arrItemDataShellMenu.push_back(new CItemData(pMenu, uMenuID, szCaption, eItemType));
@@ -1291,61 +1234,58 @@ void CTrayMenuDlg::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpdis)
 
 	CDC* pDC = CDC::FromHandle(lpdis->hDC);
 
-	if (m_menuStyleController.bOwnerDraw)
+	pDC->SelectClipRgn(NULL); // Zeichnen erlauben
+	CRect rcItem(lpdis->rcItem);
+
+	// Hintergrund des Items
+	pDC->FillSolidRect(rcItem, m_menuStyle.colMenuBackground);
+
+	// Selektiertes Item
+	if ((lpdis->itemState & ODS_SELECTED) &&
+		(lpdis->itemAction & (ODA_SELECT | ODA_DRAWENTIRE)))
 	{
-		pDC->SelectClipRgn(NULL); // Zeichnen erlauben
-		CRect rcItem(lpdis->rcItem);
+		pDC->FillSolidRect(rcItem, m_menuStyle.colMenuSelectionOuter);
+		rcItem.left++, rcItem.top++, rcItem.bottom--, rcItem.right--;
+		pDC->FillSolidRect(rcItem, m_menuStyle.colMenuSelectionInner);
+		rcItem.left++, rcItem.top++, rcItem.bottom--, rcItem.right--;
+		pDC->FillSolidRect(rcItem, m_menuStyle.colMenuSelectionBackg);
+	}
 
-		// Hintergrund des Items
-		pDC->FillSolidRect(rcItem, m_menuStyleController.colMenuBackground);
+	if (lpdis->itemID == ID_SEPARATOR)
+	{
+		CRect rcSeparator(rcItem);
+		rcSeparator.top = rcSeparator.top + rcSeparator.Height() / 2;
+		rcSeparator.bottom = rcSeparator.top + 1;
+		rcSeparator.left += 1;
+		rcSeparator.right -= 1;
+		pDC->FillSolidRect(rcSeparator, m_menuStyle.colMenuSeparator);
+	}
+	else
+	{
+		CItemData* pItemData = CItemData::Find(m_arrItemDataContextMenu, lpdis->itemID);
+		if (!pItemData) pItemData = CItemData::Find(m_arrItemDataShellMenu, lpdis->itemID);
+		if (!pItemData) pItemData = CItemData::Find(m_arrItemDataMainMenu, lpdis->itemID);
+		if (pItemData)
+		{
+			pDC->SetTextColor((lpdis->itemState & ODS_SELECTED) ? m_menuStyle.colMenuSelectionText : m_menuStyle.colMenuText);
+			pDC->TextOut(lpdis->rcItem.left + 24, lpdis->rcItem.top + 3, pItemData->strCaption);
 
-		// Selektiertes Item
-		if ((lpdis->itemState & ODS_SELECTED) &&
-			(lpdis->itemAction & (ODA_SELECT | ODA_DRAWENTIRE)))
-		{
-			pDC->FillSolidRect(rcItem, m_menuStyleController.colMenuSelectionOuter);
-			rcItem.left++, rcItem.top++, rcItem.bottom--, rcItem.right--;
-			pDC->FillSolidRect(rcItem, m_menuStyleController.colMenuSelectionInner);
-			rcItem.left++, rcItem.top++, rcItem.bottom--, rcItem.right--;
-			pDC->FillSolidRect(rcItem, m_menuStyleController.colMenuSelectionBackg);
-		}
-
-		if (lpdis->itemID == ID_SEPARATOR)
-		{
-			CRect rcSeparator(rcItem);
-			rcSeparator.top = rcSeparator.top + rcSeparator.Height() / 2;
-			rcSeparator.bottom = rcSeparator.top + 1;
-			rcSeparator.left += 1;
-			rcSeparator.right -= 1;
-			pDC->FillSolidRect(rcSeparator, m_menuStyleController.colMenuSeparator);
-		}
-		else
-		{
-			CItemData* pItemData = CItemData::Find(m_arrItemDataContextMenu, lpdis->itemID);
-			if (!pItemData) pItemData = CItemData::Find(m_arrItemDataShellMenu, lpdis->itemID);
-			if (!pItemData) pItemData = CItemData::Find(m_arrItemDataMainMenu, lpdis->itemID);
-			if (pItemData)
+			if (pItemData->eItemType == ItemType::POPUP)
 			{
-				pDC->SetTextColor(m_menuStyleController.colMenuText);
-				pDC->TextOut(lpdis->rcItem.left + 24, lpdis->rcItem.top + 3, pItemData->strCaption);
-
-				if (pItemData->eItemType == ItemType::POPUP)
-				{
-					//pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, L">");
-					pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, L"\u276F"); // ❯
-					//pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, L"\u2BC8"); // ⯈
-					//pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, L"\u1433"); // ᐳ
-				}
+				//pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, L">");
+				pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, L"\u276F"); // ❯
+				//pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, L"\u2BC8"); // ⯈
+				//pDC->TextOut(lpdis->rcItem.right - 10, lpdis->rcItem.top + 3, L"\u1433"); // ᐳ
 			}
 		}
 	}
 
 	// Farben
-	COLORREF color = GetCustomColor(lpdis->itemID);
-	if (color != -1 && m_menuStyleController.bOwnerDraw)
+	COLORREF color = GetMenuColor(lpdis->itemID);
+	if (color != -1)
 	{
 		CRect rcIcon(lpdis->rcItem.left + 4, lpdis->rcItem.top + 3, lpdis->rcItem.left + 20, lpdis->rcItem.top + 19);
-		pDC->FillSolidRect(rcIcon, m_menuStyleController.colMenuSeparator);
+		pDC->FillSolidRect(rcIcon, m_menuStyle.colMenuSeparator);
 		rcIcon.left++, rcIcon.top++, rcIcon.bottom--, rcIcon.right--;
 		pDC->FillSolidRect(rcIcon, color);
 	}
@@ -1363,16 +1303,12 @@ void CTrayMenuDlg::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpdis)
 			::DeleteObject(iconinfo.hbmColor);
 			::DeleteObject(iconinfo.hbmMask);
 
-			int iIconOffsetX = (m_menuStyleController.bOwnerDraw ? 4 : 0);
-			int iIconOffsetY = (m_menuStyleController.bOwnerDraw ? 3 : 0);
-
-			::DrawIconEx(lpdis->hDC, lpdis->rcItem.left + iIconOffsetX, lpdis->rcItem.top + iIconOffsetY,
+			::DrawIconEx(lpdis->hDC, lpdis->rcItem.left + 4, lpdis->rcItem.top + 3,
 				hIcon, bitmap.bmWidth, bitmap.bmHeight, 0, NULL, DI_NORMAL);
 		}
 	}
 
-	if (m_menuStyleController.bOwnerDraw)
-		pDC->IntersectClipRect(0, 0, 0, 0); // Zeichnen verbieten (damit Windows keine eigenen Submenü-Pfeile malt)
+	pDC->IntersectClipRect(0, 0, 0, 0); // Zeichnen verbieten (damit Windows keine eigenen Submenü-Pfeile malt)
 }
 
 void CTrayMenuDlg::OnInitMenuPopup(CMenu* pMenu, UINT nIndex, BOOL bSysMenu)
@@ -1423,48 +1359,42 @@ void CTrayMenuDlg::OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpmis)
 		return;
 	}
 
-	lpmis->itemHeight = 16;
-	lpmis->itemWidth = 16;
+	lpmis->itemHeight = 22; // Höhe der Items
+	lpmis->itemWidth = 24; // Breite des Platzes für das Icon links vom Itemtext
 
-	if (m_menuStyleController.bOwnerDraw)
+	if (lpmis->itemID == ID_SEPARATOR)
 	{
-		if (lpmis->itemID == ID_SEPARATOR)
+		lpmis->itemHeight = 9;
+	}
+	else
+	{
+		CItemData* pItemData = CItemData::Find(m_arrItemDataContextMenu, lpmis->itemID);
+		if (!pItemData) pItemData = CItemData::Find(m_arrItemDataShellMenu, lpmis->itemID);
+		if (!pItemData) pItemData = CItemData::Find(m_arrItemDataMainMenu, lpmis->itemID);
+		if (pItemData)
 		{
-			lpmis->itemHeight = 9;
-		}
-		else
-		{
-			lpmis->itemHeight = 22; // Höhe der Items
-			lpmis->itemWidth = 24; // Breite des Platzes für das Icon links vom Itemtext
-
-			CItemData* pItemData = CItemData::Find(m_arrItemDataContextMenu, lpmis->itemID);
-			if (!pItemData) pItemData = CItemData::Find(m_arrItemDataShellMenu, lpmis->itemID);
-			if (!pItemData) pItemData = CItemData::Find(m_arrItemDataMainMenu, lpmis->itemID);
-			if (pItemData)
+			// Textgröße des Items ermitteln. Vorher muss der für das Menü verwendete Font
+			// gesetzt werden, andernfalls ist die ermittelte Textlänge um ca. den Faktor 1,2
+			// zu groß (z.B. 90 statt 78 Pixel für den String "Anwendungen").
+			NONCLIENTMETRICS metrics = { 0 };
+			metrics.cbSize = sizeof(metrics);
+			BOOL bResult = SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &metrics, 0);
+			if (bResult)
 			{
-				// Textgröße des Items ermitteln. Vorher muss der für das Menü verwendete Font
-				// gesetzt werden, andernfalls ist die ermittelte Textlänge um ca. den Faktor 1,2
-				// zu groß (z.B. 90 statt 78 Pixel für den String "Anwendungen").
-				NONCLIENTMETRICS metrics = { 0 };
-				metrics.cbSize = sizeof(metrics);
-				BOOL bResult = SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &metrics, 0);
-				if (bResult)
-				{
-					HFONT fontMenu = CreateFontIndirect(&metrics.lfMenuFont);
-					CFont* pFontMenu = CFont::FromHandle(fontMenu);
-					CDC* pDC = GetDC();
-					CFont* pFontOld = (CFont*)pDC->SelectObject(pFontMenu);
-					CSize size(pDC->GetTextExtent(pItemData->strCaption));
-					pDC->SelectObject(pFontOld);
-					ReleaseDC(pDC);
-					DeleteObject(fontMenu);
-					lpmis->itemWidth += size.cx;
-				}
-
-				// Wenn ein Submenü-Pfeil gezeichnet werden soll, dann 10 px hinzugeben
-				if (pItemData->eItemType == ItemType::POPUP)
-					lpmis->itemWidth += 10;
+				HFONT fontMenu = CreateFontIndirect(&metrics.lfMenuFont);
+				CFont* pFontMenu = CFont::FromHandle(fontMenu);
+				CDC* pDC = GetDC();
+				CFont* pFontOld = (CFont*)pDC->SelectObject(pFontMenu);
+				CSize size(pDC->GetTextExtent(pItemData->strCaption));
+				pDC->SelectObject(pFontOld);
+				ReleaseDC(pDC);
+				DeleteObject(fontMenu);
+				lpmis->itemWidth += size.cx;
 			}
+
+			// Wenn ein Submenü-Pfeil gezeichnet werden soll, dann 10 px hinzugeben
+			if (pItemData->eItemType == ItemType::POPUP)
+				lpmis->itemWidth += 10;
 		}
 	}
 }
@@ -1473,12 +1403,58 @@ void CTrayMenuDlg::OnMenuRButtonUp(UINT uMenuPos, CMenu* pMenu)
 {
 	// Wird nur bei Rechtsklick auf Items aufgerufen, die keine Submenüs öffnen.
 	UINT uMenuId = pMenu->GetMenuItemID(uMenuPos);
-	if (uMenuId >= MENU_ID_START && uMenuId - MENU_ID_START < m_arrEntries.size())
+	if (uMenuId >= ID_MENU_START && uMenuId - ID_MENU_START < m_arrEntries.size())
 	{
-		CEntry* pEntry = m_arrEntries[uMenuId - MENU_ID_START];
+		CEntry* pEntry = m_arrEntries[uMenuId - ID_MENU_START];
 		CPoint ptMenuPos;
 		GetCursorPos(&ptMenuPos);
 		OpenShellContextMenu(pEntry, ptMenuPos);
+	}
+	else if(uMenuId >= ID_SEL_FOLDER && uMenuId <= ID_SEL_FOLDER_MAX)
+	{
+		CMenu mnuContextMenu;
+		mnuContextMenu.CreatePopupMenu();
+		AppendMenuItem(&mnuContextMenu, ID_COLORS_DELETE, L"Forget");
+
+		CPoint ptMenuPos;
+		GetCursorPos(&ptMenuPos);
+		BOOL bResult = FALSE;
+		DWORD dwSelection = mnuContextMenu.TrackPopupMenu(TPM_RETURNCMD | TPM_RECURSE, ptMenuPos.x, ptMenuPos.y, this);
+		switch (dwSelection)
+		{
+			case ID_COLORS_DELETE:
+			{
+				SendMessage(WM_CANCELMODE); // close context menu
+				CItemData* pItemData = CItemData::Find(m_arrItemDataContextMenu, uMenuId);
+				if (pItemData)
+				{
+					RemoveFolder(pItemData->strCaption);
+				}
+				break;
+			}
+		}
+		mnuContextMenu.DestroyMenu();
+	}
+	else if(uMenuId >= ID_COLORS && uMenuId <= ID_COLORS_MAX)
+	{
+		CMenu mnuContextMenu;
+		mnuContextMenu.CreatePopupMenu();
+		AppendMenuItem(&mnuContextMenu, ID_COLORS_DELETE, L"Delete");
+
+		CPoint ptMenuPos;
+		GetCursorPos(&ptMenuPos);
+		BOOL bResult = FALSE;
+		DWORD dwSelection = mnuContextMenu.TrackPopupMenu(TPM_RETURNCMD | TPM_RECURSE, ptMenuPos.x, ptMenuPos.y, this);
+		switch (dwSelection)
+		{
+			case ID_COLORS_DELETE:
+			{
+				SendMessage(WM_CANCELMODE); // close context menu
+				RemoveMenuStyle(uMenuId);
+				break;
+			}
+		}
+		mnuContextMenu.DestroyMenu();
 	}
 }
 
@@ -1487,9 +1463,9 @@ void CTrayMenuDlg::OnRButtonUp(UINT nFlags,	CPoint point)
 	// Rechtsklick auf ein zuvor gemerktes Submenü-Item:
 	if (m_rcItemMenuSelect.PtInRect(point))
 	{
-		if (m_uItemIDMenuSelect >= MENU_ID_START && m_uItemIDMenuSelect - MENU_ID_START < m_arrEntries.size())
+		if (m_uItemIDMenuSelect >= ID_MENU_START && m_uItemIDMenuSelect - ID_MENU_START < m_arrEntries.size())
 		{
-			CEntry* pEntry = m_arrEntries[m_uItemIDMenuSelect - MENU_ID_START];
+			CEntry* pEntry = m_arrEntries[m_uItemIDMenuSelect - ID_MENU_START];
 			OpenShellContextMenu(pEntry, point);
 		}
 	}
@@ -1615,17 +1591,17 @@ HICON CTrayMenuDlg::GetIconForItem(UINT itemID)
 	case ID_SETTINGS: return m_hIconSettings;
 	case ID_SETTINGS_ICON: return m_hIconSettingsIcon;
 	case ID_SETTINGS_COLORS: return m_hIconColors;
-	case ID_SETTINGS_COLORS_DEF: return m_hIconColorsDefault;
-	case ID_SETTINGS_COLORS_LIG: return m_hIconColorsLight;
-	case ID_SETTINGS_COLORS_DRK: return m_hIconColorsDark;
-	case ID_SETTINGS_COLORS_OWN: return m_hIconColorsCustom;
-	case ID_SETTINGS_COLORS_CUST: return m_hIconColorsCustomize;
-	case ID_SETTINGS_COLORS_OWN_TXT: return m_hIconColorsCustomize;
-	case ID_SETTINGS_COLORS_OWN_BGD: return m_hIconColorsCustomize;
-	case ID_SETTINGS_COLORS_OWN_SEP: return m_hIconColorsCustomize;
-	case ID_SETTINGS_COLORS_OWN_IOB: return m_hIconColorsCustomize;
-	case ID_SETTINGS_COLORS_OWN_IIB: return m_hIconColorsCustomize;
-	case ID_SETTINGS_COLORS_OWN_IBG: return m_hIconColorsCustomize;
+	case ID_SETTINGS_COLORS_CUST: return m_hIconColorsCustom;
+	case ID_COLORS_CUST_TXT: return m_hIconColorsCustomize;
+	case ID_COLORS_CUST_BGD: return m_hIconColorsCustomize;
+	case ID_COLORS_CUST_SEP: return m_hIconColorsCustomize;
+	case ID_COLORS_CUST_ITX: return m_hIconColorsCustomize;
+	case ID_COLORS_CUST_IOB: return m_hIconColorsCustomize;
+	case ID_COLORS_CUST_IIB: return m_hIconColorsCustomize;
+	case ID_COLORS_CUST_IBG: return m_hIconColorsCustomize;
+	case ID_COLORS_SAVE: return m_hIconSave;
+	case ID_COLORS_DELETE: return m_hIconDelete;
+	case ID_COLORS_RESTORE: return m_hIconRestore;
 	case ID_SETTINGS_LOCALIZE: return m_hIconSettingsLocalized;
 	case ID_SETTINGS_FOLDF: return m_hIconSettingsFoldersFirst;
 	case ID_SETTINGS_CLICK: return m_hIconSettingsClick;
@@ -1663,12 +1639,6 @@ HICON CTrayMenuDlg::GetIconForItem(UINT itemID)
 		return m_hIconSelectFolder;
 	}
 
-	// Dynamisch erzeugte Items des Menüs "Select folder"
-	if (itemID >= ID_DEL_FOLDER && itemID <= ID_DEL_FOLDER_MAX)
-	{
-		return m_hIconRemoveFolder;
-	}
-
 	// Dynamisch erzeugte Items des Menüs "Autostart"
 	if (itemID >= ID_REM_FOLDER && itemID <= ID_REM_FOLDER_MAX)
 	{
@@ -1676,9 +1646,9 @@ HICON CTrayMenuDlg::GetIconForItem(UINT itemID)
 	}
 
 	// Startmenü-Items
-	if (itemID >= MENU_ID_START && itemID - MENU_ID_START < m_arrEntries.size())
+	if (itemID >= ID_MENU_START && itemID - ID_MENU_START < m_arrEntries.size())
 	{
-		CEntry* pEntry = m_arrEntries[itemID - MENU_ID_START];
+		CEntry* pEntry = m_arrEntries[itemID - ID_MENU_START];
 		if (pEntry->hIcon == 0)
 		{
 			HICON hIconDefault = pEntry->eEntryType == EntryType::DIR ? m_hIconFolder : m_hIconFile;
@@ -1692,6 +1662,27 @@ HICON CTrayMenuDlg::GetIconForItem(UINT itemID)
 	{
 		CItemData* pItemData = CItemData::Find(m_arrItemDataShellMenu, itemID);
 		return pItemData ? pItemData->hIcon : 0;
+	}
+
+	// Dynamisch erzeugte Items des Menüs "Colors"
+	if (itemID >= ID_COLORS && itemID <= ID_COLORS_MAX)
+	{
+		CString strMenuStyle;
+		DWORD dwIndex = 0;
+		UINT uMenuID = ID_COLORS;
+		while ((strMenuStyle = FindNextMenuStyle(dwIndex)) != L"" && uMenuID <= ID_COLORS_MAX)
+		{
+			if (uMenuID++ == itemID)
+			{
+				CMenuStyle menuStyle;
+				menuStyle.LoadMenuStyle(L"MenuStyles\\" + strMenuStyle);
+				COLORREF cr = menuStyle.colMenuBackground;
+				BYTE grey = (GetRValue(cr) * 30 + GetGValue(cr) * 59 + GetBValue(cr) * 11) / 100;
+				if (grey < 0x60) return m_hIconColorsDark;
+				if (grey > 0xA0) return m_hIconColorsLight;
+				return m_hIconColors;
+			}
+		}
 	}
 
 	return 0;
@@ -1871,105 +1862,111 @@ BOOL CTrayMenuDlg::BrowseFolder()
 	return FALSE;
 }
 
-CString CTrayMenuDlg::FindNextProfile(DWORD& dwIndex)
+CString CTrayMenuDlg::FindNextFolder(DWORD& dwIndex)
 {
-	CRegKey keyProfiles;
-	LRESULT res = keyProfiles.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Stefan Bion\\TrayMenu\\Folders", KEY_READ);
-	while (res == ERROR_SUCCESS)
+	CString strFolder;
+	CRegKey key;
+	if (ERROR_SUCCESS == key.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Stefan Bion\\TrayMenu\\Folders", KEY_READ))
 	{
-		CString strProfile;
-		res = RegEnumKey(keyProfiles, dwIndex++, strProfile.GetBuffer(MAX_PATH), MAX_PATH);
-		strProfile.ReleaseBuffer();
-		strProfile.Replace(L'/', L'\\');
-		return strProfile;
+		RegEnumKey(key, dwIndex++, strFolder.GetBuffer(MAX_PATH), MAX_PATH);
+		strFolder.ReleaseBuffer();
+		strFolder.Replace(L'/', L'\\');
+		key.Close();
 	}
-	keyProfiles.Close();
-	return L"";
+	return strFolder;
 }
 
-BOOL CTrayMenuDlg::RemoveProfile(CString strFolderName)
+BOOL CTrayMenuDlg::RemoveFolder(CString strFolder)
 {
-	strFolderName = strFolderName.Mid(7); // "Forget " am Anfang entfernen
-	strFolderName.Replace(L'\\', L'/');
+	strFolder.Replace(L'\\', L'/');
 
-	CRegKey keyProfiles;
-	LRESULT res = keyProfiles.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Stefan Bion\\TrayMenu\\Folders", KEY_ALL_ACCESS);
+	CRegKey key;
+	LRESULT res = key.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Stefan Bion\\TrayMenu\\Folders", KEY_ALL_ACCESS);
 	if (res == ERROR_SUCCESS)
 	{
-		res = keyProfiles.DeleteSubKey(strFolderName);
-		keyProfiles.Close();
+		res = key.DeleteSubKey(strFolder);
+		key.Close();
 	}
 	return res == ERROR_SUCCESS;
 }
 
 BOOL CTrayMenuDlg::FindInAutostart(CString strFolder, BOOL bDeleteValue)
 {
-	CRegKey keyAutostart;
-	LRESULT res = keyAutostart.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+	BOOL bResult = FALSE;
+	CRegKey key;
+	LRESULT res = key.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
 		bDeleteValue ? KEY_ALL_ACCESS : KEY_READ);
-	DWORD dwIndex = 0;
-	while (res  == ERROR_SUCCESS)
+	if (res == ERROR_SUCCESS)
 	{
-		CString strValueName;
-		DWORD dwLengthValueName = MAX_PATH;
-		res = RegEnumValue(keyAutostart, dwIndex++, strValueName.GetBuffer(MAX_PATH), &dwLengthValueName, NULL, NULL, NULL, NULL);
-		strValueName.ReleaseBuffer();
-		if (strValueName.Left(10) == L"TrayMenu #")
+		DWORD dwIndex = 0;
+		while (res == ERROR_SUCCESS)
 		{
-			CString strValue;
-			DWORD dwLengthValue = MAX_PATH;
-			res = keyAutostart.QueryStringValue(strValueName, strValue.GetBuffer(MAX_PATH), &dwLengthValue);
-			if (res == ERROR_SUCCESS)
+			CString strValueName;
+			DWORD dwLengthValueName = MAX_PATH;
+			res = RegEnumValue(key, dwIndex++, strValueName.GetBuffer(MAX_PATH), &dwLengthValueName, NULL, NULL, NULL, NULL);
+			strValueName.ReleaseBuffer();
+			if (res == ERROR_SUCCESS && strValueName.Left(10) == L"TrayMenu #")
 			{
-				if (strValue.Find(L"\\TrayMenu.exe\" \"" + strFolder + L"\"") != -1)
+				CString strValue;
+				DWORD dwLengthValue = MAX_PATH;
+				res = key.QueryStringValue(strValueName, strValue.GetBuffer(MAX_PATH), &dwLengthValue);
+				if (res == ERROR_SUCCESS)
 				{
-					if (bDeleteValue) keyAutostart.DeleteValue(strValueName);
-					keyAutostart.Close();
-					return TRUE;
+					if (strValue.Find(L"\\TrayMenu.exe\" \"" + strFolder + L"\"") != -1)
+					{
+						if (bDeleteValue) key.DeleteValue(strValueName);
+						bResult = TRUE;
+						break;
+					}
 				}
 			}
 		}
+		key.Close();
 	}
-	keyAutostart.Close();
-	return FALSE;
+	return bResult;
 }
 
 CString CTrayMenuDlg::FindNextAutostartFolder(DWORD& dwIndex)
 {
-	CRegKey keyAutostart;
-	LRESULT res = keyAutostart.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", KEY_READ);
-	while (res == ERROR_SUCCESS)
+	CString strFolder;
+	CRegKey key;
+	LRESULT res = key.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", KEY_READ);
+	if (res == ERROR_SUCCESS)
 	{
-		CString strValueName;
-		DWORD dwLengthValueName = MAX_PATH;
-		res = RegEnumValue(keyAutostart, dwIndex++, strValueName.GetBuffer(MAX_PATH), &dwLengthValueName, NULL, NULL, NULL, NULL);
-		strValueName.ReleaseBuffer();
-		if (strValueName.Left(10) == L"TrayMenu #")
+		while (res == ERROR_SUCCESS)
 		{
-			CString strValue;
-			DWORD dwLengthValue = MAX_PATH;
-			res = keyAutostart.QueryStringValue(strValueName, strValue.GetBuffer(MAX_PATH), &dwLengthValue);
-			strValue.ReleaseBuffer();
-			if (res == ERROR_SUCCESS)
+			CString strValueName;
+			DWORD dwLengthValueName = MAX_PATH;
+			res = RegEnumValue(key, dwIndex++, strValueName.GetBuffer(MAX_PATH), &dwLengthValueName, NULL, NULL, NULL, NULL);
+			strValueName.ReleaseBuffer();
+			if (res == ERROR_SUCCESS && strValueName.Left(10) == L"TrayMenu #")
 			{
-				CString strSearch = L"\\TrayMenu.exe\" \"";
-				int nPos = strValue.Find(strSearch);
-				if (nPos != -1)
+				CString strValue;
+				DWORD dwLengthValue = MAX_PATH;
+				res = key.QueryStringValue(strValueName, strValue.GetBuffer(MAX_PATH), &dwLengthValue);
+				strValue.ReleaseBuffer();
+				if (res == ERROR_SUCCESS)
 				{
-					CString strFolder = strValue.Mid(nPos + strSearch.GetLength());
-					strFolder = strFolder.Left(strFolder.GetLength() - 1); // remove trailing quotes
-					keyAutostart.Close();
-					return strFolder;
+					CString strSearch = L"\\TrayMenu.exe\" \"";
+					int nPos = strValue.Find(strSearch);
+					if (nPos != -1)
+					{
+						strFolder = strValue.Mid(nPos + strSearch.GetLength());
+						strFolder = strFolder.Left(strFolder.GetLength() - 1); // remove trailing quotes
+						break;
+					}
 				}
 			}
 		}
+		key.Close();
 	}
-	keyAutostart.Close();
-	return L"";
+	return strFolder;
 }
 
 BOOL CTrayMenuDlg::AddToAutostart(CString strFolder)
 {
+	BOOL bResult = FALSE;
+
 	CString strAppPath;
 	GetModuleFileName(GetModuleHandle(NULL), strAppPath.GetBuffer(MAX_PATH), MAX_PATH);
 	strAppPath.ReleaseBuffer();
@@ -1977,22 +1974,58 @@ BOOL CTrayMenuDlg::AddToAutostart(CString strFolder)
 	CString strAutostartCommand;
 	strAutostartCommand.Format(L"\"%s\" \"%s\"", (LPCTSTR)strAppPath, (LPCTSTR)strFolder);
 
-	int mEntryID = 1;
-	CRegKey keyAutostart;
-	LRESULT res = keyAutostart.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", KEY_ALL_ACCESS);
-	while (res == ERROR_SUCCESS)
+	int nEntryID = 1;
+	CRegKey key;
+	LRESULT res = key.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", KEY_ALL_ACCESS);
+	if (res == ERROR_SUCCESS)
 	{
-		CString strValueName;
-		strValueName.Format(L"TrayMenu #%d", mEntryID++);
-		CString strValue;
-		DWORD dwLengthValue = MAX_PATH;
-		res = keyAutostart.QueryStringValue(strValueName, strValue.GetBuffer(MAX_PATH), &dwLengthValue);
-		strValue.ReleaseBuffer();
-		if (res != ERROR_SUCCESS)
-			keyAutostart.SetStringValue(strValueName, strAutostartCommand);
+		while (res == ERROR_SUCCESS)
+		{
+			CString strValueName;
+			strValueName.Format(L"TrayMenu #%d", nEntryID++);
+			CString strValue;
+			DWORD dwLengthValue = MAX_PATH;
+			res = key.QueryStringValue(strValueName, strValue.GetBuffer(MAX_PATH), &dwLengthValue);
+			strValue.ReleaseBuffer();
+			if (res != ERROR_SUCCESS)
+			{
+				res = key.SetStringValue(strValueName, strAutostartCommand);
+				bResult = (res == ERROR_SUCCESS);
+				break;
+			}
+		}
+		key.Close();
 	}
-	keyAutostart.Close();
-	return TRUE;
+	return bResult;
+}
+
+CString CTrayMenuDlg::FindNextMenuStyle(DWORD& dwIndex)
+{
+	CString strMenuStyle;
+	CRegKey key;
+	if (ERROR_SUCCESS == key.Open(HKEY_CURRENT_USER, L"SOFTWARE\\Stefan Bion\\TrayMenu\\MenuStyles", KEY_READ))
+	{
+		RegEnumKey(key, dwIndex++, strMenuStyle.GetBuffer(MAX_PATH), MAX_PATH);
+		strMenuStyle.ReleaseBuffer();
+		key.Close();
+	}
+	return strMenuStyle;
+}
+
+BOOL CTrayMenuDlg::RemoveMenuStyle(UINT uMenuID)
+{
+	CString strMenuStyle;
+	DWORD dwIndex = 0;
+	UINT uCurrentMenuID = ID_COLORS;
+	while ((strMenuStyle = FindNextMenuStyle(dwIndex)) != L"")
+	{
+		if (uCurrentMenuID == uMenuID)
+		{
+			return ERROR_SUCCESS == RegDeleteKey(HKEY_CURRENT_USER, L"SOFTWARE\\Stefan Bion\\TrayMenu\\MenuStyles\\" + strMenuStyle);
+		}
+		uCurrentMenuID++;
+	}
+	return FALSE;
 }
 
 BOOL CTrayMenuDlg::CreateShortcut()
@@ -2025,9 +2058,10 @@ BOOL CTrayMenuDlg::CreateShortcut()
 		psl->SetArguments(L"\"" + m_strFolder + L"\"");
 		psl->SetDescription(m_strFolder);
 		if (m_nIconIndex == -1)
-			psl->SetIconLocation(strAppPath, m_nIconIndex);
+			// psl->SetIconLocation(m_strFolder, 0); // geht nicht; das Folder-Icon lässt sich hier nicht verwenden
+			psl->SetIconLocation(strAppPath, 0);
 		else
-			psl->SetIconLocation(m_strFolder, 0);
+			psl->SetIconLocation(strAppPath, m_nIconIndex);
 
 		// Query IShellLink for the IPersistFile interface, used for saving the 
 		// shortcut in persistent storage.
@@ -2076,6 +2110,8 @@ CString CTrayMenuDlg::GetHotkeyName()
 
 void CTrayMenuDlg::ShowDialogHotkey()
 {
+	ResetDialog();
+	m_hotKeyCtrl.ShowWindow(SW_SHOW);
 	m_DlgMode = DlgMode::HOTKEY;
 	m_bIsVisible = TRUE;
 	SetWindowText(L"Define hotkey");
@@ -2102,6 +2138,39 @@ void CTrayMenuDlg::DefineHotkey()
 		m_uHotkeyKeyCode = uHotkeyKeyCodeOld;
 		RegisterHotkey();
 	}
+}
+
+void CTrayMenuDlg::ShowDialogColorName()
+{
+	ResetDialog();
+	m_edtInput.ShowWindow(SW_SHOW);
+	m_DlgMode = DlgMode::COLORNAME;
+	m_bIsVisible = TRUE;
+	SetWindowText(L"Save menu colors");
+	m_stcDlgMessage.SetWindowText(L"Please enter a name for the color style:");
+	m_edtInput.SetWindowText(L"");
+	m_edtInput.SetFocus();
+	CenterWindow();
+	ShowWindow(SW_RESTORE);
+}
+
+void CTrayMenuDlg::SaveMenuStyle()
+{
+	CString strMenuStyle;
+	m_edtInput.GetWindowText(strMenuStyle);
+	if (strMenuStyle.IsEmpty()) return;
+
+	CString strCurrentMenuStyle;
+	DWORD dwIndex = 0;
+	BOOL bFound = FALSE;
+	while ((strCurrentMenuStyle = FindNextMenuStyle(dwIndex)) != L"")
+	{
+		if (strCurrentMenuStyle == strMenuStyle) bFound = TRUE;
+	}
+	if (bFound && IDYES != MessageBox(L"Color name exists. Overwrite?", L"Warning", MB_YESNO | MB_ICONWARNING)) return;
+
+	CMenuStyle menuStyle = m_menuStyle;
+	menuStyle.SaveMenuStyle(L"MenuStyles\\" + strMenuStyle);
 }
 
 BOOL CTrayMenuDlg::ShellExecuteWait(HWND hwnd, LPCWSTR lpOperation, LPCWSTR lpFile, LPCWSTR lpParameters, LPCWSTR lpDirectory, INT nShowCmd, DWORD dwMilliseconds)

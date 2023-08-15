@@ -215,6 +215,7 @@
     <Image Include="res\browse_folder.ico" />
     <Image Include="res\click.ico" />
     <Image Include="res\close.ico" />
+    <Image Include="res\delete.ico" />
     <Image Include="res\exit.ico" />
     <Image Include="res\explorer.ico" />
     <Image Include="res\export_settings.ico" />
@@ -229,10 +230,11 @@
     <Image Include="res\palette.ico" />
     <Image Include="res\reload.ico" />
     <Image Include="res\remove_folder.ico" />
+    <Image Include="res\restore.ico" />
+    <Image Include="res\save.ico" />
     <Image Include="res\select_folder.ico" />
     <Image Include="res\seticon.ico" />
     <Image Include="res\settings.ico" />
-    <Image Include="res\settings_folder.ico" />
     <Image Include="res\shortcut.ico" />
     <Image Include="res\sun.ico" />
     <Image Include="res\tools.ico" />

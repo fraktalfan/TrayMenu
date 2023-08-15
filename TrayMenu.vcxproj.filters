@@ -74,6 +74,9 @@
     <Image Include="res\close.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
+    <Image Include="res\delete.ico">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
     <Image Include="res\exit.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
@@ -116,6 +119,12 @@
     <Image Include="res\remove_folder.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
+    <Image Include="res\restore.ico">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
+    <Image Include="res\save.ico">
+      <Filter>Ressourcendateien</Filter>
+    </Image>
     <Image Include="res\select_folder.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
@@ -123,9 +132,6 @@
       <Filter>Ressourcendateien</Filter>
     </Image>
     <Image Include="res\settings.ico">
-      <Filter>Ressourcendateien</Filter>
-    </Image>
-    <Image Include="res\settings_folder.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
     <Image Include="res\shortcut.ico">

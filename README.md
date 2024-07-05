@@ -1,3 +1,10 @@
+> [!NOTE]
+> **TrayMenu has moved from GitHub to SourceForge.**
+> 
+> You can find the latest version of TrayMenu at [SourceForge](https://sourceforge.net/projects/windows-traymenu/) or at the [developer's homepage](https://www.stefanbion.de/traymenu/).
+>
+> The TrayMenu code here at GitHub won't be maintained or updated anymore.
+
 # TrayMenu
 An alternative, freely configurable Start menu for Windows
 ## Short Description
@@ -9,7 +16,7 @@ TrayMenu creates a hierarchical menu from the contents of any folder for quick a
 In my opinion, the folder-based Start menu introduced with Windows 95 was ideal for clearly categorizing all installed applications and frequently used files in one central location and for quick access to them. After Microsoft unfortunately abolished this extremely practical form of the Start menu with Windows 8 and replaced it with a confusing "Start page", thank God there were tools such as "Open-Shell" that brought the classic Start menu back again. Unfortunately, its installation requires administrator rights, so it cannot be used on company computers with limited user rights, for example. There you could at least help yourself with a self-created toolbar, which behaved similarly to a Start menu, except that it could not be opened via the keyboard (Windows key or Ctrl+Esc, but only by clicking in the taskbar. Unfortunately, with the introduction of Windows 11, Microsoft also abolished this last option of creating your own selection menus. With TrayMenu, an alternative is available that doesn't quite come close to the old Start menu, but still fulfills two important criteria: 1.) Any folder contents can be displayed in the form of a hierarchically structured menu, and 2.) it does not require admin rights on the computer.
 
 ## Build / Download
-The source code can be compiled with Visual Studio 2019-2022 (with MSVC and MFC packages). An executable file can be downloaded from the [Repository](https://github.com/fraktalfan/TrayMenu/tree/main/x64/Release) or from the [developer's homepage](https://www.stefanbion.de/traymenu/).
+The source code can be compiled with Visual Studio 2019-2022 (with MSVC and MFC packages). An executable file can be downloaded from [SourceForge](https://sourceforge.net/projects/windows-traymenu/) or from the [developer's homepage](https://www.stefanbion.de/traymenu/).
 
 ## Installation
 An installation in the usual sense is not necessary; the "TrayMenu.exe" program file can simply be copied to any folder and started from there. A blue 3×3 square icon will appear in the notification area of the task list at the bottom right near the clock:
